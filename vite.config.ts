@@ -11,7 +11,7 @@ export default defineConfig({
     host: true,
     port: 4173,
     allowedHosts: [
-      'myportfolio-daeb.onrender.com',
+      'myportfolio-7rdo.onrender.com',
       'www.joaocgaspar.pt'
     ]
   }
