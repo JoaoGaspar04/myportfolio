@@ -18,19 +18,37 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     // Check for user preference in localStorage
     const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
     if (savedTheme) {
       setIsDarkMode(savedTheme === 'dark');
+    } else {
+      setIsDarkMode(prefersDark);
     }
   }, []);
 
   useEffect(() => {
     // Apply theme class to document
+    const root = document.documentElement;
+    
     if (isDarkMode) {
-      document.documentElement.classList.add('dark-mode');
-      document.documentElement.classList.remove('light-mode');
+      root.classList.add('dark-mode');
+      root.classList.remove('light-mode');
+      
+      // Dark mode CSS variables
+      root.style.setProperty('--color-text', '#ffffff');
+      root.style.setProperty('--color-text-secondary', '#a0a0a0');
+      root.style.setProperty('--color-background', '#0a0a0a');
+      root.style.setProperty('--color-background-secondary', '#111111');
     } else {
-      document.documentElement.classList.add('light-mode');
-      document.documentElement.classList.remove('dark-mode');
+      root.classList.add('light-mode');
+      root.classList.remove('dark-mode');
+      
+      // Light mode CSS variables
+      root.style.setProperty('--color-text', '#1a1a1a');
+      root.style.setProperty('--color-text-secondary', '#666666');
+      root.style.setProperty('--color-background', '#ffffff');
+      root.style.setProperty('--color-background-secondary', '#f8f9fa');
     }
     
     // Save preference to localStorage

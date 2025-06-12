@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Menu, X, Shield, Activity } from 'lucide-react';
+import { Menu, X, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import '../../styles/Navbar.css';
 import { useTheme } from '../../context/ThemeContext';
+import ThemeToggle from '../ui/ThemeToggle';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const { isDarkMode, toggleTheme } = useTheme();
+  const { isDarkMode } = useTheme();
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
@@ -89,14 +90,19 @@ const Navbar = () => {
             <NavLink to="/contact" className={({isActive}) => isActive ? 'active' : ''}>Contact</NavLink>
           </motion.div>
 
-          <motion.button 
-            className="nav-toggle"
-            onClick={toggleMenu}
+          <motion.div 
+            className="navbar-actions"
             variants={itemVariants}
-            whileTap={{ scale: 0.95 }}
           >
-            {isOpen ? <X size={24} /> : <Menu size={24} />}
-          </motion.button>
+            <ThemeToggle />
+            <motion.button 
+              className="nav-toggle"
+              onClick={toggleMenu}
+              whileTap={{ scale: 0.95 }}
+            >
+              {isOpen ? <X size={24} /> : <Menu size={24} />}
+            </motion.button>
+          </motion.div>
         </div>
       </div>
 

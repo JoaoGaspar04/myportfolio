@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  /* Base colors */
+  /* Base colors - will be overridden by theme */
   --color-text: #ffffff;
   --color-text-secondary: #a0a0a0;
   --color-background: #0a0a0a;
@@ -28,6 +28,7 @@
   --radius-md: 6px;
   --radius-lg: 8px;
   --radius-xl: 12px;
+  --radius-xs: 2px;
   
   /* Spacing */
   --space-xs: 4px;
@@ -69,6 +70,15 @@
   --z-tooltip: 400;
 }
 
+/* Light mode overrides */
+.light-mode {
+  --gradient-primary: linear-gradient(135deg, #f0f4f8 0%, #ffffff 100%);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -83,6 +93,7 @@ html, body {
   overflow-x: hidden;
   scroll-behavior: smooth;
   min-height: 100vh;
+  transition: background-color var(--transition-normal), color var(--transition-normal);
 }
 
 .app {
@@ -222,4 +233,22 @@ a:hover {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #444;
+}
+
+/* Light mode scrollbar */
+.light-mode ::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.light-mode ::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+}
+
+.light-mode ::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Particle background adjustments for light mode */
+.light-mode .particle-canvas {
+  opacity: 0.3;
 }

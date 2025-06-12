@@ -5,11 +5,14 @@ import { ThemeProvider } from './context/ThemeContext';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import ChatBot from './components/chatbot/ChatBot';
+import CookieBanner from './components/ui/CookieBanner';
 import Home from './pages/Home';
 import About from './pages/About';
 import Skills from './pages/Skills';
 import Projects from './pages/Projects';
 import Contact from './pages/Contact';
+import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
 import NetworkDiagram from './components/visualizations/NetworkDiagram';
 import Loader from './components/ui/Loader';
 import ParticleBackground from './components/animations/ParticleBackground';
@@ -46,11 +49,14 @@ function App() {
               <Route path="/skills" element={<Skills />} />
               <Route path="/projects" element={<Projects />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/terms" element={<Terms />} />
             </Routes>
           </AnimatePresence>
         </main>
         
         <ChatBot isOpen={chatOpen} toggleChat={() => setChatOpen(!chatOpen)} />
+        <CookieBanner />
         <Footer />
       </div>
     </ThemeProvider>
