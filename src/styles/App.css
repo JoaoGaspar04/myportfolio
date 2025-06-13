@@ -6,6 +6,13 @@
   --color-text-secondary: #a0a0a0;
   --color-background: #0a0a0a;
   --color-background-secondary: #111111;
+  --color-background-tertiary: #1a1a1a;
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-border-hover: rgba(0, 255, 65, 0.3);
+  --color-card-bg: rgba(0, 0, 0, 0.3);
+  --color-input-bg: rgba(0, 0, 0, 0.3);
+  --color-overlay: rgba(0, 0, 0, 0.8);
+  
   --color-primary: #00ff41; /* Matrix green */
   --color-secondary: #0099ff;
   --color-accent: #ff3860;
@@ -73,10 +80,10 @@
 /* Light mode overrides */
 .light-mode {
   --gradient-primary: linear-gradient(135deg, #f0f4f8 0%, #ffffff 100%);
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.1);
-  --shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.15);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.15);
+  --shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.2);
 }
 
 * {
@@ -157,6 +164,7 @@ a:hover {
   transition: all var(--transition-normal);
   border: none;
   font-family: var(--font-primary);
+  text-decoration: none;
 }
 
 .btn-primary {
@@ -167,6 +175,8 @@ a:hover {
 .btn-primary:hover {
   background-color: color-mix(in srgb, var(--color-primary) 80%, white);
   color: var(--color-background);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
 
 .btn-secondary {
@@ -177,6 +187,8 @@ a:hover {
 
 .btn-secondary:hover {
   background-color: rgba(0, 255, 65, 0.1);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 /* Utilities */
@@ -227,28 +239,57 @@ a:hover {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #333;
+  background: var(--color-border);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #444;
+  background: var(--color-border-hover);
 }
 
 /* Light mode scrollbar */
 .light-mode ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: var(--color-background-secondary);
 }
 
 .light-mode ::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
+  background: var(--color-border);
 }
 
 .light-mode ::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: var(--color-border-hover);
 }
 
 /* Particle background adjustments for light mode */
 .light-mode .particle-canvas {
-  opacity: 0.3;
+  opacity: 0.2;
+}
+
+/* Light mode specific improvements */
+.light-mode .navbar {
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.light-mode .navbar.scrolled {
+  background-color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.light-mode .footer {
+  background-color: var(--color-background-secondary);
+  border-top: 1px solid var(--color-border);
+}
+
+.light-mode .terminal-window,
+.light-mode .terminal,
+.light-mode .code-terminal {
+  background-color: var(--color-background-tertiary);
+  border: 1px solid var(--color-border);
+}
+
+.light-mode .terminal-header {
+  background-color: var(--color-background-secondary);
+  border-bottom: 1px solid var(--color-border);
 }

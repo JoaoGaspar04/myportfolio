@@ -1,9 +1,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { MonitorSmartphone , Shield , DownloadCloud, Network, Users  } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import '../styles/About.css';
 
 const About = () => {
+  const navigate = useNavigate();
+
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -22,6 +25,20 @@ const About = () => {
       opacity: 1,
       transition: { duration: 0.6 }
     }
+  };
+
+  const handleDownloadResume = () => {
+    // Create a link to download resume (you can replace with actual resume file)
+    const link = document.createElement('a');
+    link.href = '/resume.pdf'; // Replace with actual resume file path
+    link.download = 'Joao_Gaspar_Resume.pdf';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleConnect = () => {
+    navigate('/contact');
   };
 
   // Experience timeline data
@@ -104,6 +121,7 @@ const About = () => {
               className="btn btn-primary"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              onClick={handleDownloadResume}
             >
               <DownloadCloud size={16} />
               Download Resume
@@ -112,6 +130,7 @@ const About = () => {
               className="btn btn-secondary"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              onClick={handleConnect}
             >
               <Users size={16} />
               Connect

@@ -40,6 +40,12 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       root.style.setProperty('--color-text-secondary', '#a0a0a0');
       root.style.setProperty('--color-background', '#0a0a0a');
       root.style.setProperty('--color-background-secondary', '#111111');
+      root.style.setProperty('--color-background-tertiary', '#1a1a1a');
+      root.style.setProperty('--color-border', 'rgba(255, 255, 255, 0.1)');
+      root.style.setProperty('--color-border-hover', 'rgba(0, 255, 65, 0.3)');
+      root.style.setProperty('--color-card-bg', 'rgba(0, 0, 0, 0.3)');
+      root.style.setProperty('--color-input-bg', 'rgba(0, 0, 0, 0.3)');
+      root.style.setProperty('--color-overlay', 'rgba(0, 0, 0, 0.8)');
     } else {
       root.classList.add('light-mode');
       root.classList.remove('dark-mode');
@@ -49,6 +55,12 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       root.style.setProperty('--color-text-secondary', '#666666');
       root.style.setProperty('--color-background', '#ffffff');
       root.style.setProperty('--color-background-secondary', '#f8f9fa');
+      root.style.setProperty('--color-background-tertiary', '#e9ecef');
+      root.style.setProperty('--color-border', 'rgba(0, 0, 0, 0.1)');
+      root.style.setProperty('--color-border-hover', 'rgba(0, 255, 65, 0.5)');
+      root.style.setProperty('--color-card-bg', 'rgba(255, 255, 255, 0.8)');
+      root.style.setProperty('--color-input-bg', 'rgba(255, 255, 255, 0.9)');
+      root.style.setProperty('--color-overlay', 'rgba(255, 255, 255, 0.9)');
     }
     
     // Save preference to localStorage

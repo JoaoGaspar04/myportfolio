@@ -36,6 +36,10 @@ const Home = () => {
     navigate('/contact');
   };
 
+  const handlePortfolioClick = () => {
+    navigate('/projects');
+  };
+
   // Terminal typing effect
   useEffect(() => {
     const terminalText = "Securing digital infrastructures with advanced network solutions...";
@@ -112,6 +116,7 @@ const Home = () => {
               className="btn btn-primary"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              onClick={handlePortfolioClick}
             >
               View Portfolio
             </motion.button>
@@ -157,8 +162,8 @@ const Home = () => {
               whileHover={{ y: -10, boxShadow: '0 10px 30px rgba(0, 255, 65, 0.2)' }}
             >
               <Shield size={48} className="expertise-icon" />
-              <h3>Network</h3>
-              <p>Implementing robust security protocols and intrusion detection systems to protect critical network.</p>
+              <h3>Network Security</h3>
+              <p>Implementing robust security protocols and intrusion detection systems to protect critical network infrastructure.</p>
             </motion.div>
             
             <motion.div
@@ -186,8 +191,6 @@ const Home = () => {
               <h3>IoT Security</h3>
               <p>Securing Internet of Things devices with specialized protocols designed for resource-constrained environments.</p>
             </motion.div>
-            
-   
           </div>
         </section>
       </div>
