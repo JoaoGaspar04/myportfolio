@@ -148,56 +148,62 @@
   border-radius: var(--radius-lg);
 }
 
-/* Modal Overlay usando Flexbox para centralização perfeita */
+/* Modal Overlay - Fixed positioning and centering */
 .modal-overlay {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(5px);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
   z-index: var(--z-modal);
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: var(--space-lg);
 }
 
-/* Modal centralizado pelo Flexbox do overlay */
+/* Modal - Properly centered and responsive */
 .project-modal {
-  position: relative; /* Não precisa mais de fixed */
   background-color: var(--color-background-secondary);
   border-radius: var(--radius-lg);
-  width: 90%;
+  width: 100%;
   max-width: 900px;
   max-height: 90vh;
-  overflow: auto;
-  z-index: calc(var(--z-modal) + 1);
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   border: 1px solid rgba(0, 255, 65, 0.3);
-  box-shadow: var(--shadow-xl);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  position: relative;
+  margin: auto;
 }
 
-/* Botão de fechar */
+/* Close button - Better positioning */
 .modal-close {
   position: absolute;
-  top: var(--space-md);
-  right: var(--space-md);
-  background-color: rgba(0, 0, 0, 0.5);
+  top: var(--space-lg);
+  right: var(--space-lg);
+  background-color: rgba(0, 0, 0, 0.7);
   border: none;
   color: var(--color-text);
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 2;
+  z-index: 10;
   transition: all var(--transition-fast);
+  backdrop-filter: blur(10px);
 }
 
 .modal-close:hover {
   background-color: var(--color-accent);
   color: white;
+  transform: scale(1.1);
 }
 
 .modal-image {
@@ -241,11 +247,48 @@
   gap: var(--space-md);
 }
 
+/* Light mode modal improvements */
+.light-mode .modal-overlay {
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+.light-mode .project-modal {
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.light-mode .modal-close {
+  background-color: rgba(255, 255, 255, 0.9);
+  color: var(--color-text);
+}
+
+.light-mode .modal-close:hover {
+  background-color: var(--color-accent);
+  color: white;
+}
+
 @media (max-width: 768px) {
-  .project-modal {
-    width: 95%;
+  .modal-overlay {
+    padding: var(--space-md);
   }
+  
+  .project-modal {
+    max-height: 95vh;
+  }
+  
   .modal-image {
     height: 200px;
+  }
+  
+  .modal-content {
+    padding: var(--space-lg);
+  }
+  
+  .modal-close {
+    top: var(--space-md);
+    right: var(--space-md);
+    width: 36px;
+    height: 36px;
   }
 }
