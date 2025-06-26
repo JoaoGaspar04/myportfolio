@@ -118,7 +118,7 @@ const About = () => {
               onClick={handleDownloadResume}
             >
               <DownloadCloud size={16} />
-              Download Resume
+              Download CV
             </motion.button>
             <motion.button
               className="btn btn-secondary"
