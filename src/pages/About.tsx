@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { MonitorSmartphone , Shield , DownloadCloud, Network, Users  } from 'lucide-react';
+import { MonitorSmartphone, Shield, DownloadCloud, Network, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/About.css';
 
@@ -28,13 +28,7 @@ const About = () => {
   };
 
   const handleDownloadResume = () => {
-    // Create a link to download resume (you can replace with actual resume file)
-    const link = document.createElement('a');
-    link.href = '/resume.pdf'; // Replace with actual resume file path
-    link.download = 'Joao_Gaspar_Resume.pdf';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    window.open('https://rxresu.me/joaogaspar04/portfolio-publico', '_blank');
   };
 
   const handleConnect = () => {
@@ -196,7 +190,7 @@ const About = () => {
             whileHover={{ y: -5, boxShadow: '0 10px 30px rgba(0, 255, 65, 0.15)' }}
           >
             <div className="approach-icon">
-              <MonitorSmartphone  size={32} />
+              <MonitorSmartphone size={32} />
             </div>
             <h3>IT Support</h3>
             <p>
@@ -210,7 +204,7 @@ const About = () => {
             whileHover={{ y: -5, boxShadow: '0 10px 30px rgba(0, 255, 65, 0.15)' }}
           >
             <div className="approach-icon">
-              <Shield  size={32} />
+              <Shield size={32} />
             </div>
             <h3>Cybersecurity</h3>
             <p>
@@ -223,7 +217,7 @@ const About = () => {
             whileHover={{ y: -5, boxShadow: '0 10px 30px rgba(0, 255, 65, 0.15)' }}
           >
             <div className="approach-icon">
-              <Network  size={32} />
+              <Network size={32} />
             </div>
             <h3>Network</h3>
             <p>
