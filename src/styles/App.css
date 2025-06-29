@@ -209,6 +209,58 @@ a:hover {
   50% { opacity: 0; }
 }
 
+/* Security and Performance Indicators */
+.security-indicator-compact {
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all var(--transition-normal);
+}
+
+.security-indicator-compact:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+/* High contrast mode support */
+.high-contrast {
+  filter: contrast(150%) brightness(120%);
+}
+
+.high-contrast * {
+  border-color: #000 !important;
+  outline: 2px solid #000 !important;
+}
+
+.high-contrast a {
+  text-decoration: underline !important;
+  font-weight: bold !important;
+}
+
+/* Skip links for accessibility */
+.skip-links {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  z-index: 10000;
+}
+
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: #000;
+  color: #fff;
+  padding: 8px;
+  text-decoration: none;
+  border-radius: 4px;
+  font-weight: bold;
+  z-index: 10001;
+}
+
+.skip-link:focus {
+  top: 6px;
+}
+
 /* Media Queries */
 @media (max-width: 768px) {
   h1 {
@@ -313,4 +365,53 @@ a:hover {
 /* Prevenir scroll do body quando modal está aberto */
 body.modal-open {
   overflow: hidden;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .blinking-cursor {
+    animation: none;
+  }
+}
+
+/* Focus styles for better accessibility */
+*:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+button:focus,
+a:focus,
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+  .navbar,
+  .footer,
+  .chatbot-toggle,
+  .chatbot-container,
+  .security-indicator-compact,
+  .performance-monitor {
+    display: none !important;
+  }
+  
+  .main-content {
+    padding-top: 0;
+  }
+  
+  * {
+    background: white !important;
+    color: black !important;
+  }
 }

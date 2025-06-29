@@ -1,32 +1,51 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { SecurityUtils } from '../utils/security';
 
 interface FormField {
   value: string;
   error: string;
   touched: boolean;
+  dirty: boolean;
 }
 
 interface ValidationRules {
   required?: boolean;
   email?: boolean;
+  phone?: boolean;
   minLength?: number;
   maxLength?: number;
   pattern?: RegExp;
   custom?: (value: string) => string | null;
+  asyncValidation?: (value: string) => Promise<string | null>;
+}
+
+interface FormOptions {
+  validateOnChange?: boolean;
+  validateOnBlur?: boolean;
+  sanitizeOnChange?: boolean;
+  debounceMs?: number;
 }
 
 export const useSecureForm = <T extends Record<string, any>>(
   initialValues: T,
-  validationRules: Partial<Record<keyof T, ValidationRules>> = {}
+  validationRules: Partial<Record<keyof T, ValidationRules>> = {},
+  options: FormOptions = {}
 ) => {
+  const {
+    validateOnChange = true,
+    validateOnBlur = true,
+    sanitizeOnChange = true,
+    debounceMs = 300
+  } = options;
+
   const [fields, setFields] = useState<Record<keyof T, FormField>>(() => {
     const initialFields = {} as Record<keyof T, FormField>;
     Object.keys(initialValues).forEach(key => {
       initialFields[key as keyof T] = {
         value: initialValues[key as keyof T] || '',
         error: '',
-        touched: false
+        touched: false,
+        dirty: false
       };
     });
     return initialFields;
@@ -34,22 +53,39 @@ export const useSecureForm = <T extends Record<string, any>>(
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitCount, setSubmitCount] = useState(0);
+  const [isValidating, setIsValidating] = useState(false);
 
-  const validateField = useCallback((name: keyof T, value: string): string => {
+  // Debounced validation
+  const [validationTimeouts, setValidationTimeouts] = useState<Record<string, NodeJS.Timeout>>({});
+
+  const validateField = useCallback(async (name: keyof T, value: string): Promise<string> => {
     const rules = validationRules[name];
     if (!rules) return '';
 
-    // Sanitize input
-    const sanitizedValue = SecurityUtils.sanitizeInput(value);
+    // Sanitize input if enabled
+    const sanitizedValue = sanitizeOnChange ? SecurityUtils.sanitizeInput(value) : value;
 
+    // Required validation
     if (rules.required && !sanitizedValue.trim()) {
       return 'Este campo é obrigatório';
     }
 
-    if (rules.email && sanitizedValue && !SecurityUtils.validateEmail(sanitizedValue)) {
-      return 'Email inválido';
+    // Skip other validations if field is empty and not required
+    if (!sanitizedValue.trim() && !rules.required) {
+      return '';
     }
 
+    // Email validation
+    if (rules.email && !SecurityUtils.validateEmail(sanitizedValue)) {
+      return 'Email inválido ou de domínio suspeito';
+    }
+
+    // Phone validation
+    if (rules.phone && !SecurityUtils.validatePhone(sanitizedValue)) {
+      return 'Número de telefone inválido';
+    }
+
+    // Length validations
     if (rules.minLength && sanitizedValue.length < rules.minLength) {
       return `Mínimo ${rules.minLength} caracteres`;
     }
@@ -58,50 +94,111 @@ export const useSecureForm = <T extends Record<string, any>>(
       return `Máximo ${rules.maxLength} caracteres`;
     }
 
-    if (rules.pattern && sanitizedValue && !rules.pattern.test(sanitizedValue)) {
+    // Pattern validation
+    if (rules.pattern && !rules.pattern.test(sanitizedValue)) {
       return 'Formato inválido';
     }
 
+    // Malicious content detection
+    if (SecurityUtils.detectMaliciousContent(sanitizedValue)) {
+      return 'Conteúdo não permitido detectado';
+    }
+
+    // Custom validation
     if (rules.custom) {
       const customError = rules.custom(sanitizedValue);
       if (customError) return customError;
     }
 
+    // Async validation
+    if (rules.asyncValidation) {
+      try {
+        const asyncError = await rules.asyncValidation(sanitizedValue);
+        if (asyncError) return asyncError;
+      } catch (error) {
+        return 'Erro na validação';
+      }
+    }
+
     return '';
-  }, [validationRules]);
+  }, [validationRules, sanitizeOnChange]);
 
   const setFieldValue = useCallback((name: keyof T, value: string) => {
-    const sanitizedValue = SecurityUtils.sanitizeInput(value);
-    const error = validateField(name, sanitizedValue);
+    const sanitizedValue = sanitizeOnChange ? SecurityUtils.sanitizeInput(value) : value;
 
-    setFields(prev => ({
-      ...prev,
-      [name]: {
-        value: sanitizedValue,
-        error,
-        touched: true
-      }
-    }));
-  }, [validateField]);
-
-  const setFieldTouched = useCallback((name: keyof T) => {
     setFields(prev => ({
       ...prev,
       [name]: {
         ...prev[name],
-        touched: true,
-        error: validateField(name, prev[name].value)
+        value: sanitizedValue,
+        dirty: true
       }
     }));
-  }, [validateField]);
 
-  const validateForm = useCallback((): boolean => {
+    // Debounced validation
+    if (validateOnChange) {
+      // Clear existing timeout
+      if (validationTimeouts[name as string]) {
+        clearTimeout(validationTimeouts[name as string]);
+      }
+
+      // Set new timeout
+      const timeout = setTimeout(async () => {
+        setIsValidating(true);
+        const error = await validateField(name, sanitizedValue);
+        
+        setFields(prev => ({
+          ...prev,
+          [name]: {
+            ...prev[name],
+            error
+          }
+        }));
+        
+        setIsValidating(false);
+      }, debounceMs);
+
+      setValidationTimeouts(prev => ({
+        ...prev,
+        [name as string]: timeout
+      }));
+    }
+  }, [validateField, validateOnChange, sanitizeOnChange, debounceMs, validationTimeouts]);
+
+  const setFieldTouched = useCallback(async (name: keyof T) => {
+    setFields(prev => ({
+      ...prev,
+      [name]: {
+        ...prev[name],
+        touched: true
+      }
+    }));
+
+    if (validateOnBlur) {
+      setIsValidating(true);
+      const error = await validateField(name, fields[name].value);
+      
+      setFields(prev => ({
+        ...prev,
+        [name]: {
+          ...prev[name],
+          error
+        }
+      }));
+      
+      setIsValidating(false);
+    }
+  }, [validateField, validateOnBlur, fields]);
+
+  const validateForm = useCallback(async (): Promise<boolean> => {
+    setIsValidating(true);
     let isValid = true;
     const newFields = { ...fields };
 
-    Object.keys(fields).forEach(key => {
+    // Validate all fields
+    const validationPromises = Object.keys(fields).map(async (key) => {
       const fieldKey = key as keyof T;
-      const error = validateField(fieldKey, fields[fieldKey].value);
+      const error = await validateField(fieldKey, fields[fieldKey].value);
       newFields[fieldKey] = {
         ...newFields[fieldKey],
         error,
@@ -110,7 +207,10 @@ export const useSecureForm = <T extends Record<string, any>>(
       if (error) isValid = false;
     });
 
+    await Promise.all(validationPromises);
     setFields(newFields);
+    setIsValidating(false);
+    
     return isValid;
   }, [fields, validateField]);
 
@@ -125,7 +225,8 @@ export const useSecureForm = <T extends Record<string, any>>(
 
     setSubmitCount(prev => prev + 1);
     
-    if (!validateForm()) {
+    const isValid = await validateForm();
+    if (!isValid) {
       throw new Error('Por favor, corrija os erros no formulário');
     }
 
@@ -137,6 +238,9 @@ export const useSecureForm = <T extends Record<string, any>>(
         const fieldKey = key as keyof T;
         values[fieldKey] = fields[fieldKey].value as T[keyof T];
       });
+
+      // Log sanitized data for security monitoring
+      console.log('Form submission:', SecurityUtils.sanitizeForLogging(values));
 
       await onSubmit(values);
     } finally {
@@ -150,12 +254,18 @@ export const useSecureForm = <T extends Record<string, any>>(
       resetFields[key as keyof T] = {
         value: initialValues[key as keyof T] || '',
         error: '',
-        touched: false
+        touched: false,
+        dirty: false
       };
     });
     setFields(resetFields);
     setSubmitCount(0);
-  }, [initialValues]);
+    setIsValidating(false);
+    
+    // Clear validation timeouts
+    Object.values(validationTimeouts).forEach(timeout => clearTimeout(timeout));
+    setValidationTimeouts({});
+  }, [initialValues, validationTimeouts]);
 
   const getFieldProps = useCallback((name: keyof T) => ({
     value: fields[name].value,
@@ -163,11 +273,25 @@ export const useSecureForm = <T extends Record<string, any>>(
       setFieldValue(name, e.target.value),
     onBlur: () => setFieldTouched(name),
     'aria-invalid': !!fields[name].error,
-    'aria-describedby': fields[name].error ? `${String(name)}-error` : undefined
+    'aria-describedby': fields[name].error ? `${String(name)}-error` : undefined,
+    'data-dirty': fields[name].dirty,
+    'data-touched': fields[name].touched
   }), [fields, setFieldValue, setFieldTouched]);
+
+  const getFieldError = useCallback((name: keyof T) => fields[name].error, [fields]);
+  const isFieldTouched = useCallback((name: keyof T) => fields[name].touched, [fields]);
+  const isFieldDirty = useCallback((name: keyof T) => fields[name].dirty, [fields]);
 
   const hasErrors = Object.values(fields).some(field => !!field.error);
   const isFormValid = !hasErrors && Object.values(fields).every(field => field.touched);
+  const isDirty = Object.values(fields).some(field => field.dirty);
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(validationTimeouts).forEach(timeout => clearTimeout(timeout));
+    };
+  }, [validationTimeouts]);
 
   return {
     fields,
@@ -177,9 +301,14 @@ export const useSecureForm = <T extends Record<string, any>>(
     handleSubmit,
     resetForm,
     getFieldProps,
+    getFieldError,
+    isFieldTouched,
+    isFieldDirty,
     isSubmitting,
+    isValidating,
     submitCount,
     hasErrors,
-    isFormValid
+    isFormValid,
+    isDirty
   };
 };
