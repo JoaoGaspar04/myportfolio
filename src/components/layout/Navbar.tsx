@@ -5,13 +5,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 import '../../styles/Navbar.css';
 import { useTheme } from '../../context/ThemeContext';
 import ThemeToggle from '../ui/ThemeToggle';
+import { AccessibilityUtils } from '../../utils/accessibility';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { isDarkMode } = useTheme();
 
-  const toggleMenu = () => setIsOpen(!isOpen);
+  const toggleMenu = () => {
+    setIsOpen(!isOpen);
+    // Announce menu state change
+    AccessibilityUtils.announce(
+      isOpen ? 'Menu fechado' : 'Menu aberto'
+    );
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -25,6 +32,19 @@ const Navbar = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Close menu on escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        setIsOpen(false);
+        AccessibilityUtils.announce('Menu fechado');
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isOpen]);
 
   // Animation variants
   const navVariants = {
@@ -62,19 +82,32 @@ const Navbar = () => {
     }
   };
 
+  const handleNavLinkClick = (pageName: string) => {
+    setIsOpen(false);
+    AccessibilityUtils.announce(`Navegando para ${pageName}`);
+  };
+
   return (
     <motion.nav 
       className={`navbar ${scrolled ? 'scrolled' : ''}`}
       initial="hidden"
       animate="visible"
       variants={navVariants}
+      id="navigation"
+      role="navigation"
+      aria-label="Navegação principal"
     >
       <div className="navbar-container">
         <motion.div className="navbar-logo" variants={itemVariants}>
-          <NavLink to="/" className="logo-link">
-            <Shield className="logo-icon" />
+          <NavLink 
+            to="/" 
+            className="logo-link"
+            onClick={() => handleNavLinkClick('página inicial')}
+            aria-label="CyberGuard - Ir para página inicial"
+          >
+            <Shield className="logo-icon" aria-hidden="true" />
             <span className="logo-text">CyberGuard</span>
-            <span className="blinking-cursor">_</span>
+            <span className="blinking-cursor" aria-hidden="true">_</span>
           </NavLink>
         </motion.div>
 
@@ -83,11 +116,41 @@ const Navbar = () => {
             className="navbar-links-desktop"
             variants={itemVariants}
           >
-            <NavLink to="/" className={({isActive}) => isActive ? 'active' : ''}>Home</NavLink>
-            <NavLink to="/about" className={({isActive}) => isActive ? 'active' : ''}>About</NavLink>
-            <NavLink to="/skills" className={({isActive}) => isActive ? 'active' : ''}>Skills</NavLink>
-            <NavLink to="/projects" className={({isActive}) => isActive ? 'active' : ''}>Projects</NavLink>
-            <NavLink to="/contact" className={({isActive}) => isActive ? 'active' : ''}>Contact</NavLink>
+            <NavLink 
+              to="/" 
+              className={({isActive}) => isActive ? 'active' : ''}
+              onClick={() => handleNavLinkClick('página inicial')}
+            >
+              Home
+            </NavLink>
+            <NavLink 
+              to="/about" 
+              className={({isActive}) => isActive ? 'active' : ''}
+              onClick={() => handleNavLinkClick('sobre')}
+            >
+              About
+            </NavLink>
+            <NavLink 
+              to="/skills" 
+              className={({isActive}) => isActive ? 'active' : ''}
+              onClick={() => handleNavLinkClick('habilidades')}
+            >
+              Skills
+            </NavLink>
+            <NavLink 
+              to="/projects" 
+              className={({isActive}) => isActive ? 'active' : ''}
+              onClick={() => handleNavLinkClick('projetos')}
+            >
+              Projects
+            </NavLink>
+            <NavLink 
+              to="/contact" 
+              className={({isActive}) => isActive ? 'active' : ''}
+              onClick={() => handleNavLinkClick('contato')}
+            >
+              Contact
+            </NavLink>
           </motion.div>
 
           <motion.div 
@@ -99,8 +162,11 @@ const Navbar = () => {
               className="nav-toggle"
               onClick={toggleMenu}
               whileTap={{ scale: 0.95 }}
+              aria-label={isOpen ? 'Fechar menu' : 'Abrir menu'}
+              aria-expanded={isOpen}
+              aria-controls="mobile-menu"
             >
-              {isOpen ? <X size={24} /> : <Menu size={24} />}
+              {isOpen ? <X size={24} aria-hidden="true" /> : <Menu size={24} aria-hidden="true" />}
             </motion.button>
           </motion.div>
         </div>
@@ -114,12 +180,50 @@ const Navbar = () => {
             initial="hidden"
             animate="visible"
             exit="exit"
+            id="mobile-menu"
+            role="menu"
+            aria-label="Menu de navegação móvel"
           >
-            <NavLink to="/" onClick={toggleMenu} className={({isActive}) => isActive ? 'active' : ''}>Home</NavLink>
-            <NavLink to="/about" onClick={toggleMenu} className={({isActive}) => isActive ? 'active' : ''}>About</NavLink>
-            <NavLink to="/skills" onClick={toggleMenu} className={({isActive}) => isActive ? 'active' : ''}>Skills</NavLink>
-            <NavLink to="/projects" onClick={toggleMenu} className={({isActive}) => isActive ? 'active' : ''}>Projects</NavLink>
-            <NavLink to="/contact" onClick={toggleMenu} className={({isActive}) => isActive ? 'active' : ''}>Contact</NavLink>
+            <NavLink 
+              to="/" 
+              onClick={() => handleNavLinkClick('página inicial')} 
+              className={({isActive}) => isActive ? 'active' : ''}
+              role="menuitem"
+            >
+              Home
+            </NavLink>
+            <NavLink 
+              to="/about" 
+              onClick={() => handleNavLinkClick('sobre')} 
+              className={({isActive}) => isActive ? 'active' : ''}
+              role="menuitem"
+            >
+              About
+            </NavLink>
+            <NavLink 
+              to="/skills" 
+              onClick={() => handleNavLinkClick('habilidades')} 
+              className={({isActive}) => isActive ? 'active' : ''}
+              role="menuitem"
+            >
+              Skills
+            </NavLink>
+            <NavLink 
+              to="/projects" 
+              onClick={() => handleNavLinkClick('projetos')} 
+              className={({isActive}) => isActive ? 'active' : ''}
+              role="menuitem"
+            >
+              Projects
+            </NavLink>
+            <NavLink 
+              to="/contact" 
+              onClick={() => handleNavLinkClick('contato')} 
+              className={({isActive}) => isActive ? 'active' : ''}
+              role="menuitem"
+            >
+              Contact
+            </NavLink>
           </motion.div>
         )}
       </AnimatePresence>

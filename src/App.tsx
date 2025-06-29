@@ -9,6 +9,9 @@ import ChatBot from './components/chatbot/ChatBot';
 import CookieBanner from './components/ui/CookieBanner';
 import SecurityIndicator from './components/ui/SecurityIndicator';
 import PerformanceMonitor from './components/ui/PerformanceMonitor';
+import AccessibilityPanel from './components/ui/AccessibilityPanel';
+import LanguageSelector from './components/ui/LanguageSelector';
+import ResponsiveHelper from './components/ui/ResponsiveHelper';
 import Home from './pages/Home';
 import About from './pages/About';
 import Skills from './pages/Skills';
@@ -22,6 +25,7 @@ import { PerformanceUtils } from './utils/performance';
 import { AccessibilityUtils } from './utils/accessibility';
 import { SecurityUtils } from './utils/security';
 import './styles/App.css';
+import './styles/accessibility.css';
 import './styles/ErrorBoundary.css';
 
 function App() {
@@ -31,10 +35,10 @@ function App() {
   const [securityLevel, setSecurityLevel] = useState<'low' | 'medium' | 'high' | 'maximum'>('maximum');
 
   useEffect(() => {
-    // Initialize security and accessibility features
+    // Initialize universal accessibility and security features
     const initializeApp = async () => {
       try {
-        // Initialize accessibility features
+        // Initialize accessibility features first
         AccessibilityUtils.initialize();
 
         // Security headers check
@@ -55,6 +59,12 @@ function App() {
           // Add more critical resources here
         ]);
 
+        // Check for slow connection and adapt
+        if (PerformanceUtils.isSlowConnection()) {
+          document.body.classList.add('slow-connection');
+          console.log('🐌 Slow connection detected, optimizing experience');
+        }
+
         // Simulate loading with performance monitoring
         const loadStart = performance.now();
         
@@ -69,11 +79,15 @@ function App() {
           if (process.env.NODE_ENV === 'development') {
             PerformanceUtils.monitorPerformance();
           }
+
+          // Announce page load for screen readers
+          AccessibilityUtils.announce('Página carregada com sucesso. Use Tab para navegar ou Ctrl+Alt+A para modo de emergência de acessibilidade.');
         }, 2000);
 
       } catch (error) {
         console.error('❌ App initialization error:', error);
         setLoading(false);
+        AccessibilityUtils.announce('Erro ao carregar a página. Tente recarregar.', 'assertive');
       }
     };
 
@@ -98,13 +112,13 @@ function App() {
 
       const checkForSuspiciousActivity = () => {
         const currentUrl = window.location.href;
-        const hassuspicious = suspiciousPatterns.some(pattern => 
+        const hasSuspicious = suspiciousPatterns.some(pattern => 
           currentUrl.toLowerCase().includes(pattern)
         );
 
-        if (hassuspicious) {
+        if (hasSuspicious) {
           console.warn('🚨 Suspicious activity detected in URL');
-          // In production, you might want to redirect or block
+          AccessibilityUtils.announce('Atividade suspeita detectada. Página sendo protegida.', 'assertive');
         }
       };
 
@@ -114,6 +128,7 @@ function App() {
       const originalAlert = window.alert;
       window.alert = function(message) {
         console.warn('🚨 Alert intercepted (potential XSS):', message);
+        AccessibilityUtils.announce('Tentativa de script malicioso bloqueada.', 'assertive');
         return originalAlert.call(window, message);
       };
     };
@@ -121,25 +136,55 @@ function App() {
     monitorSecurity();
   }, []);
 
-  // Keyboard shortcuts for development
+  // Keyboard shortcuts for development and accessibility
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Only in development
-      if (process.env.NODE_ENV !== 'development') return;
+      // Development shortcuts
+      if (process.env.NODE_ENV === 'development') {
+        if (e.ctrlKey || e.metaKey) {
+          switch (e.key) {
+            case 'p':
+              e.preventDefault();
+              setShowPerformanceMonitor(prev => !prev);
+              break;
+            case 'a':
+              e.preventDefault();
+              AccessibilityUtils.auditAccessibility();
+              break;
+            case 's':
+              e.preventDefault();
+              PerformanceUtils.monitorPerformance();
+              break;
+          }
+        }
+      }
 
-      if (e.ctrlKey || e.metaKey) {
+      // Universal accessibility shortcuts
+      if (e.ctrlKey && e.altKey) {
         switch (e.key) {
-          case 'p':
-            e.preventDefault();
-            setShowPerformanceMonitor(prev => !prev);
-            break;
           case 'a':
             e.preventDefault();
-            AccessibilityUtils.auditAccessibility();
+            AccessibilityUtils.enableEmergencyMode();
             break;
-          case 's':
+          case 'h':
             e.preventDefault();
-            PerformanceUtils.monitorPerformance();
+            // Toggle high contrast
+            document.body.classList.toggle('high-contrast');
+            AccessibilityUtils.announce(
+              document.body.classList.contains('high-contrast') 
+                ? 'Alto contraste ativado' 
+                : 'Alto contraste desativado'
+            );
+            break;
+          case 'm':
+            e.preventDefault();
+            // Toggle reduced motion
+            document.body.classList.toggle('reduced-motion');
+            AccessibilityUtils.announce(
+              document.body.classList.contains('reduced-motion') 
+                ? 'Animações reduzidas' 
+                : 'Animações normais'
+            );
             break;
         }
       }
@@ -157,10 +202,34 @@ function App() {
         violatedDirective: e.violatedDirective,
         originalPolicy: e.originalPolicy
       });
+      AccessibilityUtils.announce('Violação de segurança detectada e bloqueada.', 'assertive');
     };
 
     document.addEventListener('securitypolicyviolation', handleCSPViolation);
     return () => document.removeEventListener('securitypolicyviolation', handleCSPViolation);
+  }, []);
+
+  // Handle modal state for body scroll
+  useEffect(() => {
+    const handleModalState = () => {
+      const modals = document.querySelectorAll('[role="dialog"]:not([aria-hidden="true"])');
+      if (modals.length > 0) {
+        document.body.classList.add('modal-open');
+      } else {
+        document.body.classList.remove('modal-open');
+      }
+    };
+
+    // Monitor for modal changes
+    const observer = new MutationObserver(handleModalState);
+    observer.observe(document.body, { 
+      childList: true, 
+      subtree: true, 
+      attributes: true, 
+      attributeFilter: ['aria-hidden', 'role'] 
+    });
+
+    return () => observer.disconnect();
   }, []);
 
   if (loading) {
@@ -176,10 +245,26 @@ function App() {
       <ThemeProvider>
         <div className="app">
           <ParticleBackground />
+          
+          {/* Skip links for accessibility */}
+          <div className="skip-links">
+            <a href="#main-content" className="skip-link">Pular para conteúdo principal</a>
+            <a href="#navigation" className="skip-link">Pular para navegação</a>
+            <a href="#footer" className="skip-link">Pular para rodapé</a>
+          </div>
+
           <Navbar />
           
-          {/* Security indicator */}
-          <div style={{ position: 'fixed', top: '80px', left: '20px', zIndex: 1000 }}>
+          {/* Accessibility and utility indicators */}
+          <div style={{ 
+            position: 'fixed', 
+            top: '80px', 
+            left: '20px', 
+            zIndex: 1000,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px'
+          }}>
             <SecurityIndicator 
               level={securityLevel} 
               compact={true}
@@ -194,9 +279,24 @@ function App() {
             />
           </div>
 
+          {/* Language selector in top right */}
+          <div style={{ 
+            position: 'fixed', 
+            top: '80px', 
+            right: '20px', 
+            zIndex: 1000 
+          }}>
+            <LanguageSelector />
+          </div>
+
           {/* Performance monitor (development only) */}
           {process.env.NODE_ENV === 'development' && (
             <PerformanceMonitor visible={showPerformanceMonitor} />
+          )}
+
+          {/* Responsive helper (development only) */}
+          {process.env.NODE_ENV === 'development' && (
+            <ResponsiveHelper />
           )}
           
           <main className="main-content" role="main" id="main-content">
@@ -217,6 +317,9 @@ function App() {
           <ErrorBoundary fallback={null}>
             <ChatBot isOpen={chatOpen} toggleChat={debouncedToggleChat} />
           </ErrorBoundary>
+
+          {/* Accessibility Panel */}
+          <AccessibilityPanel />
           
           <CookieBanner />
           <Footer />
