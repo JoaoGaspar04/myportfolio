@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Shield, Eye, Lock, Database, Mail, Phone } from 'lucide-react';
+import { Shield, Eye, Lock, Database, Mail, Phone, Server, UserCheck, AlertTriangle, FileText } from 'lucide-react';
 import '../styles/Legal.css';
 
 const Privacy = () => {
@@ -23,6 +23,19 @@ const Privacy = () => {
     }
   };
 
+  const iconVariants = {
+    hidden: { scale: 0, rotate: -180 },
+    visible: { 
+      scale: 1, 
+      rotate: 0,
+      transition: { 
+        type: "spring",
+        stiffness: 260,
+        damping: 20 
+      }
+    }
+  };
+
   return (
     <motion.div
       className="legal-container"
@@ -31,160 +44,291 @@ const Privacy = () => {
       animate="visible"
     >
       <motion.div className="legal-hero" variants={itemVariants}>
-        <div className="legal-icon">
+        <motion.div className="legal-icon" variants={iconVariants}>
           <Shield size={48} />
-        </div>
-        <h1>Privacy Policy</h1>
+        </motion.div>
+        <h1>Política de Privacidade</h1>
         <p className="legal-subtitle">
-          Your privacy is important to us. This policy explains how we collect, use, and protect your information.
+          Sua privacidade é fundamental para nós. Esta política explica como coletamos, usamos e protegemos suas informações com os mais altos padrões de segurança cibernética.
         </p>
         <div className="last-updated">
-          Last updated: January 2025
+          Última atualização: Janeiro 2025
         </div>
       </motion.div>
 
       <motion.div className="legal-content" variants={itemVariants}>
-        <section className="legal-section">
+        <motion.section className="legal-section" variants={itemVariants}>
           <div className="section-icon">
             <Eye size={24} />
           </div>
-          <h2>Information We Collect</h2>
+          <h2>Informações que Coletamos</h2>
           <div className="section-content">
-            <h3>Personal Information</h3>
+            <h3>Informações Pessoais</h3>
             <p>
-              When you contact us through our website, we may collect:
+              Quando você entra em contato conosco através do nosso site, podemos coletar:
             </p>
             <ul>
-              <li>Name and email address (when you fill out contact forms)</li>
-              <li>Phone number (if provided voluntarily)</li>
-              <li>Message content and communication preferences</li>
-              <li>IP address and browser information for security purposes</li>
+              <li><strong>Dados de Identificação:</strong> Nome completo e endereço de email (quando você preenche formulários de contato)</li>
+              <li><strong>Dados de Comunicação:</strong> Número de telefone (se fornecido voluntariamente)</li>
+              <li><strong>Conteúdo de Mensagens:</strong> Conteúdo das mensagens e preferências de comunicação</li>
+              <li><strong>Dados Técnicos:</strong> Endereço IP, informações do navegador e dados de sessão para fins de segurança</li>
+              <li><strong>Dados de Localização:</strong> Localização aproximada baseada no IP para fins de segurança e conformidade</li>
             </ul>
 
-            <h3>Automatically Collected Information</h3>
+            <h3>Informações Coletadas Automaticamente</h3>
             <p>
-              We automatically collect certain information when you visit our website:
+              Coletamos automaticamente certas informações quando você visita nosso site:
             </p>
             <ul>
-              <li>Browser type and version</li>
-              <li>Operating system</li>
-              <li>Pages visited and time spent on our site</li>
-              <li>Referring website addresses</li>
-              <li>Device information (screen resolution, device type)</li>
+              <li><strong>Dados do Navegador:</strong> Tipo e versão do navegador, sistema operacional</li>
+              <li><strong>Dados de Navegação:</strong> Páginas visitadas, tempo gasto no site, padrões de clique</li>
+              <li><strong>Dados de Referência:</strong> Endereços de sites de referência e termos de pesquisa</li>
+              <li><strong>Dados do Dispositivo:</strong> Informações do dispositivo (resolução da tela, tipo de dispositivo)</li>
+              <li><strong>Dados de Performance:</strong> Métricas de carregamento e performance para otimização</li>
+            </ul>
+
+            <h3>Dados de Segurança</h3>
+            <p>
+              Para proteger nosso site e usuários, coletamos:
+            </p>
+            <ul>
+              <li><strong>Logs de Segurança:</strong> Tentativas de acesso, padrões de tráfego suspeito</li>
+              <li><strong>Dados de Autenticação:</strong> Informações de sessão criptografadas</li>
+              <li><strong>Dados de Prevenção de Fraude:</strong> Análise comportamental para detectar atividades maliciosas</li>
             </ul>
           </div>
-        </section>
+        </motion.section>
 
-        <section className="legal-section">
+        <motion.section className="legal-section" variants={itemVariants}>
           <div className="section-icon">
             <Database size={24} />
           </div>
-          <h2>How We Use Your Information</h2>
+          <h2>Como Usamos Suas Informações</h2>
           <div className="section-content">
-            <p>We use the collected information for the following purposes:</p>
+            <p>Utilizamos as informações coletadas para os seguintes propósitos:</p>
+            
+            <h3>Comunicação e Suporte</h3>
             <ul>
-              <li>To respond to your inquiries and provide customer support</li>
-              <li>To improve our website and services</li>
-              <li>To analyze website usage and optimize user experience</li>
-              <li>To comply with legal obligations</li>
-              <li>To protect against fraud and ensure website security</li>
+              <li>Responder às suas consultas e fornecer suporte ao cliente</li>
+              <li>Enviar confirmações e atualizações sobre seus pedidos ou consultas</li>
+              <li>Fornecer informações técnicas e de segurança relevantes</li>
+            </ul>
+
+            <h3>Melhoria de Serviços</h3>
+            <ul>
+              <li>Analisar o uso do site e otimizar a experiência do usuário</li>
+              <li>Desenvolver novos recursos e melhorar funcionalidades existentes</li>
+              <li>Realizar pesquisas de mercado e análise de tendências</li>
+            </ul>
+
+            <h3>Segurança e Conformidade</h3>
+            <ul>
+              <li>Proteger contra fraudes e garantir a segurança do site</li>
+              <li>Cumprir obrigações legais e regulamentares</li>
+              <li>Detectar e prevenir atividades maliciosas ou não autorizadas</li>
+              <li>Manter logs de auditoria para fins de segurança</li>
             </ul>
           </div>
-        </section>
+        </motion.section>
 
-        <section className="legal-section">
+        <motion.section className="legal-section" variants={itemVariants}>
           <div className="section-icon">
             <Lock size={24} />
           </div>
-          <h2>Data Protection & Security</h2>
+          <h2>Proteção e Segurança de Dados</h2>
           <div className="section-content">
             <p>
-              We implement appropriate technical and organizational measures to protect your personal data:
+              Implementamos medidas técnicas e organizacionais apropriadas para proteger seus dados pessoais:
             </p>
+            
+            <h3>Medidas Técnicas</h3>
             <ul>
-              <li>SSL encryption for all data transmission</li>
-              <li>Secure servers with regular security updates</li>
-              <li>Access controls and authentication measures</li>
-              <li>Regular security audits and monitoring</li>
-              <li>Data minimization - we only collect necessary information</li>
+              <li><strong>Criptografia SSL/TLS:</strong> Todas as transmissões de dados são criptografadas</li>
+              <li><strong>Servidores Seguros:</strong> Infraestrutura com atualizações regulares de segurança</li>
+              <li><strong>Firewalls Avançados:</strong> Proteção multicamada contra ameaças</li>
+              <li><strong>Monitoramento 24/7:</strong> Detecção contínua de ameaças e anomalias</li>
+              <li><strong>Backup Seguro:</strong> Backups criptografados e geograficamente distribuídos</li>
+            </ul>
+
+            <h3>Medidas Organizacionais</h3>
+            <ul>
+              <li><strong>Controles de Acesso:</strong> Acesso restrito baseado no princípio do menor privilégio</li>
+              <li><strong>Treinamento de Segurança:</strong> Equipe treinada em melhores práticas de segurança</li>
+              <li><strong>Auditorias Regulares:</strong> Avaliações periódicas de segurança e conformidade</li>
+              <li><strong>Políticas de Segurança:</strong> Procedimentos documentados e atualizados regularmente</li>
+              <li><strong>Minimização de Dados:</strong> Coletamos apenas informações necessárias</li>
+            </ul>
+
+            <h3>Certificações e Conformidade</h3>
+            <ul>
+              <li>Conformidade com GDPR (Regulamento Geral de Proteção de Dados)</li>
+              <li>Aderência às melhores práticas de segurança cibernética</li>
+              <li>Implementação de frameworks de segurança reconhecidos</li>
             </ul>
           </div>
-        </section>
+        </motion.section>
 
-        <section className="legal-section">
-          <h2>Cookies and Tracking</h2>
-          <div className="section-content">
-            <p>
-              Our website uses cookies to enhance your browsing experience:
-            </p>
-            <ul>
-              <li><strong>Essential Cookies:</strong> Required for basic website functionality</li>
-              <li><strong>Analytics Cookies:</strong> Help us understand how visitors use our site</li>
-              <li><strong>Preference Cookies:</strong> Remember your settings and preferences</li>
-            </ul>
-            <p>
-              You can manage your cookie preferences through our cookie banner or browser settings.
-            </p>
+        <motion.section className="legal-section" variants={itemVariants}>
+          <div className="section-icon">
+            <Server size={24} />
           </div>
-        </section>
-
-        <section className="legal-section">
-          <h2>Your Rights Under GDPR</h2>
+          <h2>Cookies e Tecnologias de Rastreamento</h2>
           <div className="section-content">
             <p>
-              As a data subject, you have the following rights:
+              Nosso site utiliza cookies e tecnologias similares para melhorar sua experiência:
             </p>
+            
+            <h3>Tipos de Cookies</h3>
             <ul>
-              <li><strong>Right of Access:</strong> Request copies of your personal data</li>
-              <li><strong>Right to Rectification:</strong> Request correction of inaccurate data</li>
-              <li><strong>Right to Erasure:</strong> Request deletion of your personal data</li>
-              <li><strong>Right to Restrict Processing:</strong> Request limitation of data processing</li>
-              <li><strong>Right to Data Portability:</strong> Request transfer of your data</li>
-              <li><strong>Right to Object:</strong> Object to processing of your personal data</li>
+              <li><strong>Cookies Essenciais:</strong> Necessários para funcionalidade básica do site</li>
+              <li><strong>Cookies de Performance:</strong> Nos ajudam a entender como os visitantes usam nosso site</li>
+              <li><strong>Cookies de Funcionalidade:</strong> Lembram suas configurações e preferências</li>
+              <li><strong>Cookies de Segurança:</strong> Protegem contra atividades maliciosas</li>
             </ul>
-            <p>
-              To exercise any of these rights, please contact us using the information below.
-            </p>
-          </div>
-        </section>
 
-        <section className="legal-section">
-          <h2>Data Retention</h2>
-          <div className="section-content">
+            <h3>Gerenciamento de Cookies</h3>
             <p>
-              We retain your personal data only for as long as necessary:
+              Você pode gerenciar suas preferências de cookies através do nosso banner de cookies ou configurações do navegador. 
+              Note que desabilitar certos cookies pode afetar a funcionalidade do site.
             </p>
+
+            <h3>Tecnologias Adicionais</h3>
             <ul>
-              <li>Contact form submissions: 2 years from last contact</li>
-              <li>Analytics data: 26 months (anonymized)</li>
-              <li>Security logs: 1 year</li>
-              <li>Email communications: Until you request deletion</li>
+              <li><strong>Local Storage:</strong> Para armazenar preferências do usuário</li>
+              <li><strong>Session Storage:</strong> Para dados temporários da sessão</li>
+              <li><strong>Web Beacons:</strong> Para análise de performance (quando aplicável)</li>
             </ul>
           </div>
-        </section>
+        </motion.section>
 
-        <section className="legal-section">
-          <h2>Third-Party Services</h2>
+        <motion.section className="legal-section" variants={itemVariants}>
+          <div className="section-icon">
+            <UserCheck size={24} />
+          </div>
+          <h2>Seus Direitos sob o GDPR</h2>
           <div className="section-content">
             <p>
-              We may use third-party services that collect information:
+              Como titular de dados, você possui os seguintes direitos:
             </p>
+            
+            <h3>Direitos Fundamentais</h3>
             <ul>
-              <li><strong>EmailJS:</strong> For contact form functionality</li>
-              <li><strong>Firebase:</strong> For hosting and analytics</li>
-              <li><strong>Netlify:</strong> For website deployment</li>
+              <li><strong>Direito de Acesso:</strong> Solicitar cópias de seus dados pessoais</li>
+              <li><strong>Direito de Retificação:</strong> Solicitar correção de dados imprecisos</li>
+              <li><strong>Direito ao Apagamento:</strong> Solicitar exclusão de seus dados pessoais</li>
+              <li><strong>Direito à Limitação:</strong> Solicitar limitação do processamento de dados</li>
+              <li><strong>Direito à Portabilidade:</strong> Solicitar transferência de seus dados</li>
+              <li><strong>Direito de Oposição:</strong> Opor-se ao processamento de seus dados pessoais</li>
             </ul>
+
+            <h3>Como Exercer Seus Direitos</h3>
             <p>
-              These services have their own privacy policies and data protection measures.
+              Para exercer qualquer um desses direitos, entre em contato conosco usando as informações abaixo. 
+              Responderemos à sua solicitação dentro de 30 dias, conforme exigido pelo GDPR.
+            </p>
+
+            <h3>Direito de Reclamação</h3>
+            <p>
+              Você tem o direito de apresentar uma reclamação a uma autoridade supervisora se acreditar que 
+              o processamento de seus dados pessoais viola o GDPR.
             </p>
           </div>
-        </section>
+        </motion.section>
 
-        <section className="legal-section">
-          <h2>Contact Information</h2>
+        <motion.section className="legal-section" variants={itemVariants}>
+          <div className="section-icon">
+            <FileText size={24} />
+          </div>
+          <h2>Retenção de Dados</h2>
           <div className="section-content">
             <p>
-              If you have questions about this Privacy Policy or want to exercise your rights, contact us:
+              Retemos seus dados pessoais apenas pelo tempo necessário:
+            </p>
+            
+            <h3>Períodos de Retenção</h3>
+            <ul>
+              <li><strong>Formulários de contato:</strong> 3 anos a partir do último contato</li>
+              <li><strong>Dados de analytics:</strong> 26 meses (anonimizados após 14 meses)</li>
+              <li><strong>Logs de segurança:</strong> 2 anos para fins de auditoria</li>
+              <li><strong>Comunicações por email:</strong> Até que você solicite a exclusão</li>
+              <li><strong>Dados de cookies:</strong> Conforme configurado em cada tipo de cookie</li>
+            </ul>
+
+            <h3>Exclusão Automática</h3>
+            <p>
+              Implementamos sistemas automatizados para exclusão de dados expirados, garantindo que 
+              informações desnecessárias não sejam mantidas além do período necessário.
+            </p>
+          </div>
+        </motion.section>
+
+        <motion.section className="legal-section" variants={itemVariants}>
+          <div className="section-icon">
+            <AlertTriangle size={24} />
+          </div>
+          <h2>Serviços de Terceiros</h2>
+          <div className="section-content">
+            <p>
+              Podemos utilizar serviços de terceiros que coletam informações:
+            </p>
+            
+            <h3>Serviços Utilizados</h3>
+            <ul>
+              <li><strong>EmailJS:</strong> Para funcionalidade de formulários de contato</li>
+              <li><strong>Firebase:</strong> Para hospedagem e analytics básicos</li>
+              <li><strong>Netlify:</strong> Para deployment e CDN do site</li>
+              <li><strong>Google Fonts:</strong> Para tipografia (carregamento otimizado)</li>
+            </ul>
+
+            <h3>Proteções Implementadas</h3>
+            <ul>
+              <li>Todos os serviços terceiros são avaliados quanto à conformidade com GDPR</li>
+              <li>Contratos de processamento de dados estabelecidos quando necessário</li>
+              <li>Monitoramento regular da conformidade de terceiros</li>
+              <li>Minimização de dados compartilhados com terceiros</li>
+            </ul>
+
+            <p>
+              Estes serviços possuem suas próprias políticas de privacidade e medidas de proteção de dados.
+            </p>
+          </div>
+        </motion.section>
+
+        <motion.section className="legal-section" variants={itemVariants}>
+          <h2>Transferências Internacionais</h2>
+          <div className="section-content">
+            <p>
+              Quando transferimos dados para fora da União Europeia, garantimos proteções adequadas:
+            </p>
+            <ul>
+              <li><strong>Cláusulas Contratuais Padrão:</strong> Para transferências para países terceiros</li>
+              <li><strong>Decisões de Adequação:</strong> Transferências apenas para países com proteção adequada</li>
+              <li><strong>Certificações:</strong> Verificação de certificações de segurança de provedores</li>
+              <li><strong>Criptografia:</strong> Todos os dados são criptografados durante a transferência</li>
+            </ul>
+          </div>
+        </motion.section>
+
+        <motion.section className="legal-section" variants={itemVariants}>
+          <h2>Menores de Idade</h2>
+          <div className="section-content">
+            <p>
+              Nosso site não é direcionado a menores de 16 anos. Não coletamos intencionalmente 
+              informações pessoais de menores. Se tomarmos conhecimento de que coletamos dados 
+              de um menor, tomaremos medidas para excluir essas informações imediatamente.
+            </p>
+            <p>
+              Se você é pai/mãe ou responsável e acredita que seu filho nos forneceu informações 
+              pessoais, entre em contato conosco imediatamente.
+            </p>
+          </div>
+        </motion.section>
+
+        <motion.section className="legal-section" variants={itemVariants}>
+          <h2>Informações de Contato</h2>
+          <div className="section-content">
+            <p>
+              Se você tiver dúvidas sobre esta Política de Privacidade ou quiser exercer seus direitos, entre em contato:
             </p>
             <div className="contact-info">
               <div className="contact-item">
@@ -196,17 +340,35 @@ const Privacy = () => {
                 <span>+351 968196979</span>
               </div>
             </div>
-          </div>
-        </section>
-
-        <section className="legal-section">
-          <h2>Changes to This Policy</h2>
-          <div className="section-content">
+            
+            <h3>Encarregado de Proteção de Dados (DPO)</h3>
             <p>
-              We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last updated" date.
+              Para questões específicas sobre proteção de dados, você pode entrar em contato 
+              diretamente com nosso responsável pela proteção de dados através dos canais acima.
             </p>
           </div>
-        </section>
+        </motion.section>
+
+        <motion.section className="legal-section" variants={itemVariants}>
+          <h2>Alterações nesta Política</h2>
+          <div className="section-content">
+            <p>
+              Podemos atualizar esta Política de Privacidade periodicamente. Notificaremos sobre 
+              quaisquer alterações publicando a nova Política de Privacidade nesta página e 
+              atualizando a data de "Última atualização".
+            </p>
+            <p>
+              Para alterações significativas, forneceremos aviso mais proeminente, incluindo 
+              notificação por email quando apropriado.
+            </p>
+            
+            <h3>Histórico de Versões</h3>
+            <ul>
+              <li><strong>v2.0 - Janeiro 2025:</strong> Atualização completa com melhorias de segurança</li>
+              <li><strong>v1.0 - Janeiro 2024:</strong> Versão inicial da política</li>
+            </ul>
+          </div>
+        </motion.section>
       </motion.div>
     </motion.div>
   );
