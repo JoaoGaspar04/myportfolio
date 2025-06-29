@@ -1,7 +1,7 @@
 .chatbot-container {
   position: fixed;
-  bottom: 80px;
-  right: 80px;
+  bottom: 30px;
+  right: 30px;
   width: 380px;
   height: 500px;
   background-color: var(--color-background-secondary);
@@ -235,8 +235,8 @@
 /* Chat toggle button - Much more visible positioning */
 .chatbot-toggle {
   position: fixed;
-  bottom: 80px;
-  right: 80px;
+  bottom: 30px;
+  right: 30px;
   width: 72px;
   height: 72px;
   border-radius: 50%;
@@ -248,7 +248,7 @@
   justify-content: center;
   cursor: pointer;
   box-shadow: 0 12px 32px rgba(0, 255, 65, 0.4), 0 0 0 4px rgba(0, 255, 65, 0.1);
-  z-index: var(--z-dropdown);
+  z-index: 1000;
   position: relative;
   overflow: hidden;
   transition: all var(--transition-normal);
@@ -295,8 +295,8 @@
 
 .chatbot-minimized {
   position: fixed;
-  bottom: 80px;
-  right: 80px;
+  bottom: 30px;
+  right: 30px;
   display: flex;
   align-items: center;
   gap: var(--space-sm);
@@ -306,7 +306,7 @@
   color: var(--color-background);
   cursor: pointer;
   box-shadow: 0 8px 24px rgba(0, 255, 65, 0.3);
-  z-index: var(--z-dropdown);
+  z-index: 1000;
   font-weight: 500;
   position: relative;
   transition: all var(--transition-normal);
@@ -446,8 +446,8 @@
   .chatbot-container,
   .chatbot-toggle,
   .chatbot-minimized {
-    bottom: 60px;
-    right: 60px;
+    bottom: 25px;
+    right: 25px;
   }
 }
 
@@ -455,50 +455,50 @@
   .chatbot-container,
   .chatbot-toggle,
   .chatbot-minimized {
-    bottom: 40px;
-    right: 40px;
+    bottom: 20px;
+    right: 20px;
   }
 }
 
 @media (max-width: 768px) {
   .chatbot-container {
-    width: calc(100% - 80px);
+    width: calc(100% - 40px);
     height: 450px;
-    bottom: 30px;
-    right: 40px;
-    left: 40px;
+    bottom: 20px;
+    right: 20px;
+    left: 20px;
   }
   
   .chatbot-toggle {
-    bottom: 30px;
-    right: 40px;
+    bottom: 20px;
+    right: 20px;
     width: 64px;
     height: 64px;
   }
   
   .chatbot-minimized {
-    bottom: 30px;
-    right: 40px;
+    bottom: 20px;
+    right: 20px;
   }
 }
 
 @media (max-width: 480px) {
   .chatbot-toggle {
-    bottom: 25px;
-    right: 25px;
+    bottom: 15px;
+    right: 15px;
     width: 60px;
     height: 60px;
   }
   
   .chatbot-minimized {
-    bottom: 25px;
-    right: 25px;
+    bottom: 15px;
+    right: 15px;
   }
   
   .chatbot-container {
-    bottom: 25px;
-    right: 25px;
-    left: 25px;
-    width: calc(100% - 50px);
+    bottom: 15px;
+    right: 15px;
+    left: 15px;
+    width: calc(100% - 30px);
   }
 }

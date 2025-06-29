@@ -13,7 +13,6 @@ import Projects from './pages/Projects';
 import Contact from './pages/Contact';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
-import NetworkDiagram from './components/visualizations/NetworkDiagram';
 import Loader from './components/ui/Loader';
 import ParticleBackground from './components/animations/ParticleBackground';
 import './styles/App.css';
@@ -55,7 +54,9 @@ function App() {
           </AnimatePresence>
         </main>
         
+        {/* ChatBot component - ensure it's always rendered */}
         <ChatBot isOpen={chatOpen} toggleChat={() => setChatOpen(!chatOpen)} />
+        
         <CookieBanner />
         <Footer />
       </div>

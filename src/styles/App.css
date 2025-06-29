@@ -293,3 +293,10 @@ a:hover {
   background-color: var(--color-background-secondary);
   border-bottom: 1px solid var(--color-border);
 }
+
+/* Ensure chatbot is always visible */
+.chatbot-toggle,
+.chatbot-container,
+.chatbot-minimized {
+  z-index: 1000 !important;
+}
