@@ -323,6 +323,31 @@ const Projects = () => {
     exit: { opacity: 0 }
   };
 
+  // Handle project click
+  const handleProjectClick = (project: Project) => {
+    console.log('Projeto clicado:', project.title); // Debug
+    setSelectedProject(project);
+    setCurrentImageIndex(0);
+    // Prevenir scroll do body
+    document.body.classList.add('modal-open');
+  };
+
+  // Handle modal close
+  const handleCloseModal = () => {
+    console.log('Fechando modal'); // Debug
+    setSelectedProject(null);
+    setCurrentImageIndex(0);
+    // Restaurar scroll do body
+    document.body.classList.remove('modal-open');
+  };
+
+  // Handle overlay click
+  const handleOverlayClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      handleCloseModal();
+    }
+  };
+
   // Navigation functions
   const navigateProject = (direction: 'prev' | 'next') => {
     if (!selectedProject) return;
@@ -372,26 +397,17 @@ const Projects = () => {
     }
   };
 
-  // Handle project click
-  const handleProjectClick = (project: Project) => {
-    console.log('Projeto clicado:', project.title); // Debug
-    setSelectedProject(project);
-    setCurrentImageIndex(0);
-  };
+  // Handle escape key
+  React.useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && selectedProject) {
+        handleCloseModal();
+      }
+    };
 
-  // Handle modal close
-  const handleCloseModal = () => {
-    console.log('Fechando modal'); // Debug
-    setSelectedProject(null);
-    setCurrentImageIndex(0);
-  };
-
-  // Handle overlay click
-  const handleOverlayClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      handleCloseModal();
-    }
-  };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [selectedProject]);
 
   return (
     <motion.div

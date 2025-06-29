@@ -73,8 +73,8 @@
   /* Z-index */
   --z-nav: 100;
   --z-dropdown: 200;
-  --z-modal: 300;
-  --z-tooltip: 400;
+  --z-modal: 9999; /* Aumentado para garantir que modais fiquem na frente */
+  --z-tooltip: 10000;
 }
 
 /* Light mode overrides */
@@ -299,4 +299,18 @@ a:hover {
 .chatbot-container,
 .chatbot-minimized {
   z-index: 1000 !important;
+}
+
+/* Garantir que modais sempre fiquem na frente */
+.modal-overlay {
+  z-index: 9999 !important;
+}
+
+.project-modal {
+  z-index: 10000 !important;
+}
+
+/* Prevenir scroll do body quando modal está aberto */
+body.modal-open {
+  overflow: hidden;
 }
