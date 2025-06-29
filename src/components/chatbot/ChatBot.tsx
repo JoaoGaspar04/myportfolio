@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { MessageSquare, X, Send, Minimize2, Maximize2, Bot, User } from 'lucide-react';
+import { MessageSquare, X, Send, Minimize2, Maximize2, Bot, User, Brain, Zap, Shield, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SecurityUtils } from '../../utils/security';
 import { AccessibilityUtils } from '../../utils/accessibility';
 import { PerformanceUtils } from '../../utils/performance';
+import { AIService } from '../../services/AIService';
 import '../../styles/ChatBot.css';
 import TypingAnimation from '../animations/TypingAnimation';
 
@@ -13,6 +14,10 @@ interface Message {
   sender: 'user' | 'bot';
   typing?: boolean;
   timestamp: Date;
+  confidence?: number;
+  category?: string;
+  suggestions?: string[];
+  isAI?: boolean;
 }
 
 interface ChatBotProps {
@@ -22,9 +27,12 @@ interface ChatBotProps {
 
 const INITIAL_MESSAGE: Message = {
   id: 1,
-  text: "Olá! Sou o CyberGuard AI, seu assistente de cibersegurança. Posso ajudar com questões sobre segurança de redes, proteção IoT, suporte de TI e minha experiência profissional. Como posso ajudá-lo hoje?",
+  text: "🤖 Olá! Sou o CyberGuard AI, seu assistente inteligente de cibersegurança. Posso ajudar com análises de segurança, conselhos personalizados, detecção de ameaças e muito mais. Como posso proteger você hoje?",
   sender: 'bot',
-  timestamp: new Date()
+  timestamp: new Date(),
+  isAI: true,
+  confidence: 100,
+  category: 'greeting'
 };
 
 const ChatBot: React.FC<ChatBotProps> = ({ isOpen, toggleChat }) => {
@@ -33,70 +41,14 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, toggleChat }) => {
   const [minimized, setMinimized] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [messageCount, setMessageCount] = useState(1);
+  const [aiMode, setAiMode] = useState<'basic' | 'advanced' | 'expert'>('advanced');
+  const [conversationContext, setConversationContext] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   
-  // Enhanced multilingual responses with better security
-  const botResponses: Record<string, string[]> = {
-    // Saudações em português
-    'olá': [
-      "Olá! É um prazer conhecê-lo! Estou aqui para ajudar com qualquer questão sobre cibersegurança. O que gostaria de saber?",
-      "Olá! Bem-vindo ao meu portfólio. Sou apaixonado por cibersegurança e adoraria discutir como posso ajudar a proteger seu ambiente digital."
-    ],
-    'oi': [
-      "Oi! Obrigado por visitar meu portfólio. Sou especialista em segurança de redes, proteção IoT e suporte de TI. O que mais te interessa?",
-      "Olá! Estou animado para conversar sobre cibersegurança. Que área específica gostaria de explorar?"
-    ],
-    'bom dia': [
-      "Bom dia! Como posso ajudá-lo hoje? Estou aqui para discutir cibersegurança, administração de redes ou qualquer uma das minhas habilidades técnicas.",
-      "Bom dia! O que o trouxe ao meu portfólio? Adoraria ajudar com qualquer pergunta sobre minha experiência ou serviços."
-    ],
-    
-    // Saudações em inglês
-    'hello': [
-      "Hello! Great to meet you! I'm here to help with any cybersecurity questions you might have. What would you like to know?",
-      "Hi there! Welcome to my portfolio. I'm passionate about cybersecurity and would love to discuss how I can help secure your digital environment."
-    ],
-    'hi': [
-      "Hi! Thanks for visiting my portfolio. I specialize in network security, IoT protection, and IT support. What interests you most?",
-      "Hello! I'm excited to chat with you about cybersecurity. What specific area would you like to explore?"
-    ],
-    
-    // Tópicos técnicos
-    'segurança': [
-      "Segurança é minha paixão! Abordo de forma holística - desde defesa de perímetro de rede e proteção de endpoints até educação do usuário e planejamento de resposta a incidentes. Que desafios de segurança você está enfrentando?",
-      "Ótimo tópico! Implemento segurança através de múltiplas camadas: firewalls de rede, detecção de intrusão, práticas de codificação segura, avaliações regulares de vulnerabilidade e treinamento de usuários."
-    ],
-    'network': [
-      "Network security is my specialty! I work with firewalls, VPNs, intrusion detection systems, and secure network architecture. What specific network security challenge are you facing?",
-      "Great question about networks! I have hands-on experience with pfSense, OpenVPN, network monitoring tools like Wireshark, and designing secure network topologies."
-    ],
-    'iot': [
-      "IoT security is fascinating and challenging! I've worked on securing smart home systems, industrial IoT devices, and implementing proper authentication protocols. Are you working with specific IoT devices?",
-      "IoT security requires a multi-layered approach. I focus on device hardening, secure communication protocols, and network segmentation."
-    ],
-    
-    // Experiência e habilidades
-    'experiência': [
-      "Tenho experiência diversificada em cibersegurança e TI! Trabalhei como Assistente de Suporte Técnico, desenvolvi aplicações web seguras com PHP e Python, geri ambientes de virtualização Proxmox e criei soluções de segurança IoT. Gostaria de detalhes sobre alguma área específica?",
-      "Minha experiência vai desde suporte técnico prático até implementações avançadas de cibersegurança. Construí sistemas de login seguros, geri infraestruturas de rede e desenvolvi soluções de automação com Arduino."
-    ],
-    'skills': [
-      "My core skills include network security (70%), Python programming (80%), IoT device management (70%), and various cybersecurity tools like Kali Linux, Wireshark, and Nmap. What skill area would you like to know more about?",
-      "I bring a comprehensive skill set: network administration, server management, programming in Python/Java/PHP, cybersecurity analysis, and IoT security implementation."
-    ],
-    
-    // Contato
-    'contato': [
-      "Adoraria me conectar! Você pode me contatar em support@joaocgaspar.pt ou +351 968196979. Estou sempre animado para discutir oportunidades de cibersegurança. Sinta-se à vontade para usar o formulário de contato também!",
-      "Vamos conversar! Estou disponível para consultoria em cibersegurança, projetos de suporte de TI ou discussão de potenciais colaborações. Normalmente respondo em 24 horas."
-    ],
-    'contact': [
-      "I'd love to connect! You can reach me at support@joaocgaspar.pt or +351 968196979. I'm always excited to discuss cybersecurity opportunities. Feel free to use the contact form as well!",
-      "Let's talk! I'm available for cybersecurity consulting, IT support projects, or discussing potential collaborations. I typically respond within 24 hours."
-    ]
-  };
+  // Initialize AI Service
+  const aiService = new AIService();
 
   // Scroll to bottom with performance optimization
   const scrollToBottom = useCallback(() => {
@@ -124,99 +76,50 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, toggleChat }) => {
     }
   }, [isOpen, minimized]);
 
-  // Enhanced response generation with security
-  const generateResponse = useCallback((input: string): string => {
-    const sanitizedInput = SecurityUtils.sanitizeInput(input.toLowerCase());
-    
-    // Check for exact matches first
-    if (botResponses[sanitizedInput]) {
-      const responses = botResponses[sanitizedInput];
-      return responses[Math.floor(Math.random() * responses.length)];
-    }
-    
-    // Check for partial matches
-    const keywords = Object.keys(botResponses);
-    const matches = keywords
-      .map(keyword => ({
-        keyword,
-        score: calculateMatchScore(sanitizedInput, keyword)
-      }))
-      .filter(match => match.score > 0)
-      .sort((a, b) => b.score - a.score);
-    
-    if (matches.length > 0) {
-      const bestMatch = matches[0];
-      const responses = botResponses[bestMatch.keyword];
-      return responses[Math.floor(Math.random() * responses.length)];
-    }
-    
-    // Default responses based on language detection
-    const isPortuguese = detectPortuguese(sanitizedInput);
-    
-    if (isPortuguese) {
-      const portugueseResponses = [
-        "Essa é uma pergunta interessante! Embora eu me especialize em cibersegurança, adoraria explorar como seu tópico se relaciona com segurança digital. Poderia fornecer mais contexto?",
-        "Obrigado por entrar em contato! Foco em cibersegurança, segurança IoT e infraestrutura de TI. Se sua pergunta se relaciona com alguma dessas áreas, adoraria me aprofundar.",
-        "Ficaria feliz em ajudar! Meu background é em cibersegurança, segurança de redes e suporte de TI. O que gostaria de saber?"
-      ];
-      return portugueseResponses[Math.floor(Math.random() * portugueseResponses.length)];
-    } else {
-      const englishResponses = [
-        "That's an interesting question! While I specialize in cybersecurity, I'd be happy to explore how your topic relates to digital security. Could you provide more context?",
-        "Thanks for reaching out! I focus on cybersecurity, IoT security, and IT infrastructure. If your question relates to any of these areas, I'd love to dive deeper.",
-        "I'd be happy to help! My background is in cybersecurity, network security, and IT support. What would you like to know?"
-      ];
-      return englishResponses[Math.floor(Math.random() * englishResponses.length)];
-    }
-  }, []);
+  // Enhanced AI response generation
+  const generateAIResponse = useCallback(async (input: string, context: string[]): Promise<{
+    text: string;
+    confidence: number;
+    category: string;
+    suggestions: string[];
+  }> => {
+    try {
+      // Analyze input for security context
+      const analysis = await aiService.analyzeSecurityQuery(input, context);
+      
+      // Generate contextual response based on analysis
+      const response = await aiService.generateResponse(input, {
+        mode: aiMode,
+        context: context,
+        userProfile: {
+          expertise: 'intermediate', // Could be dynamic based on conversation
+          interests: ['network-security', 'iot', 'incident-response']
+        },
+        analysis: analysis
+      });
 
-  // Calculate match score for better keyword matching
-  const calculateMatchScore = (input: string, keyword: string): number => {
-    let score = 0;
-    
-    if (input === keyword) return 100;
-    if (input.includes(keyword)) score += 50;
-    if (keyword.includes(input)) score += 30;
-    
-    const inputWords = input.split(' ');
-    const keywordWords = keyword.split(' ');
-    
-    for (const inputWord of inputWords) {
-      for (const keywordWord of keywordWords) {
-        if (inputWord === keywordWord) score += 20;
-        if (inputWord.includes(keywordWord) || keywordWord.includes(inputWord)) score += 10;
-      }
+      return response;
+    } catch (error) {
+      console.error('AI Service error:', error);
+      
+      // Fallback to enhanced rule-based system
+      return aiService.getFallbackResponse(input, context);
     }
-    
-    return score;
-  };
+  }, [aiMode, aiService]);
 
-  // Detect Portuguese language
-  const detectPortuguese = (text: string): boolean => {
-    const portugueseWords = [
-      'ola', 'oi', 'bom', 'dia', 'tarde', 'noite', 'obrigado', 'obrigada',
-      'por', 'favor', 'como', 'esta', 'voce', 'que', 'isso',
-      'sim', 'nao', 'talvez', 'onde', 'quando', 'porque', 'quem',
-      'seguranca', 'rede', 'computador', 'sistema', 'projeto', 'trabalho',
-      'experiencia', 'habilidades', 'certificacao', 'contato', 'ajuda'
-    ];
-    
-    const words = text.split(' ');
-    return words.some(word => portugueseWords.includes(word));
-  };
-
-  // Handle sending a new message with security and rate limiting
+  // Handle sending a new message with AI integration
   const handleSendMessage = useCallback(async () => {
     const trimmedInput = inputValue.trim();
     if (!trimmedInput || isTyping) return;
     
     // Rate limiting
-    if (!SecurityUtils.checkRateLimit('chatbot', 10, 60000)) {
+    if (!SecurityUtils.checkRateLimit('chatbot', 15, 60000)) {
       setMessages(prev => [...prev, {
         id: Date.now(),
-        text: 'Muitas mensagens enviadas. Aguarde um momento antes de enviar outra.',
+        text: '⚠️ Muitas mensagens enviadas. Aguarde um momento antes de enviar outra.',
         sender: 'bot',
-        timestamp: new Date()
+        timestamp: new Date(),
+        category: 'rate-limit'
       }]);
       return;
     }
@@ -237,27 +140,82 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, toggleChat }) => {
     setIsTyping(true);
     setMessageCount(prev => prev + 1);
     
+    // Update conversation context
+    const newContext = [...conversationContext, sanitizedInput].slice(-5); // Keep last 5 messages
+    setConversationContext(newContext);
+    
     // Announce message for screen readers
     AccessibilityUtils.announce(`Você disse: ${sanitizedInput}`);
     
-    // Generate response with realistic delay
-    const response = generateResponse(sanitizedInput);
-    const typingDelay = Math.min(Math.max(response.length * 30, 1000), 3000);
-    
-    setTimeout(() => {
+    try {
+      // Generate AI response
+      const aiResponse = await generateAIResponse(sanitizedInput, newContext);
+      
+      // Realistic typing delay based on response length and complexity
+      const baseDelay = Math.min(Math.max(aiResponse.text.length * 25, 1500), 4000);
+      const complexityMultiplier = aiResponse.confidence < 80 ? 1.5 : 1;
+      const typingDelay = baseDelay * complexityMultiplier;
+      
+      setTimeout(() => {
+        setIsTyping(false);
+        
+        const newBotMessage: Message = {
+          id: Date.now() + 1,
+          text: aiResponse.text,
+          sender: 'bot',
+          timestamp: new Date(),
+          confidence: aiResponse.confidence,
+          category: aiResponse.category,
+          suggestions: aiResponse.suggestions,
+          isAI: true
+        };
+        
+        setMessages(prev => [...prev, newBotMessage]);
+        setConversationContext(prev => [...prev, aiResponse.text].slice(-5));
+        
+        AccessibilityUtils.announce(`CyberGuard AI respondeu: ${aiResponse.text}`);
+        
+        // Add suggestions as quick replies if available
+        if (aiResponse.suggestions && aiResponse.suggestions.length > 0) {
+          setTimeout(() => {
+            const suggestionsMessage: Message = {
+              id: Date.now() + 2,
+              text: "💡 Sugestões relacionadas:",
+              sender: 'bot',
+              timestamp: new Date(),
+              suggestions: aiResponse.suggestions,
+              category: 'suggestions'
+            };
+            setMessages(prev => [...prev, suggestionsMessage]);
+          }, 500);
+        }
+      }, typingDelay);
+      
+    } catch (error) {
+      console.error('Error generating AI response:', error);
       setIsTyping(false);
       
-      const newBotMessage: Message = {
+      const errorMessage: Message = {
         id: Date.now() + 1,
-        text: response,
+        text: "🔧 Desculpe, estou tendo dificuldades técnicas. Tente reformular sua pergunta ou entre em contato diretamente via email: support@joaocgaspar.pt",
         sender: 'bot',
-        timestamp: new Date()
+        timestamp: new Date(),
+        category: 'error'
       };
       
-      setMessages(prev => [...prev, newBotMessage]);
-      AccessibilityUtils.announce(`CyberGuard AI respondeu: ${response}`);
-    }, typingDelay);
-  }, [inputValue, isTyping, generateResponse]);
+      setMessages(prev => [...prev, errorMessage]);
+      AccessibilityUtils.announce('Erro na resposta da IA. Tente novamente.', 'assertive');
+    }
+  }, [inputValue, isTyping, generateAIResponse, conversationContext]);
+
+  // Handle suggestion clicks
+  const handleSuggestionClick = useCallback((suggestion: string) => {
+    setInputValue(suggestion);
+    // Auto-send the suggestion
+    setTimeout(() => {
+      handleSendMessage();
+    }, 100);
+  }, [handleSendMessage]);
 
   // Handle input submission with Enter key
   const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
@@ -283,6 +241,26 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, toggleChat }) => {
   const formatTime = useCallback((date: Date) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }, []);
+
+  // Get confidence color
+  const getConfidenceColor = (confidence?: number) => {
+    if (!confidence) return '#666';
+    if (confidence >= 90) return '#00ff41';
+    if (confidence >= 70) return '#00cc99';
+    if (confidence >= 50) return '#ffcc00';
+    return '#ff3860';
+  };
+
+  // Get category icon
+  const getCategoryIcon = (category?: string) => {
+    switch (category) {
+      case 'security': return <Shield size={12} />;
+      case 'analysis': return <Brain size={12} />;
+      case 'threat': return <AlertTriangle size={12} />;
+      case 'ai': return <Zap size={12} />;
+      default: return <Bot size={12} />;
+    }
+  };
 
   // Animation variants
   const chatVariants = {
@@ -328,7 +306,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, toggleChat }) => {
         {isOpen && !minimized && (
           <motion.div 
             ref={chatContainerRef}
-            className="chatbot-container"
+            className="chatbot-container enhanced"
             variants={chatVariants}
             initial="hidden"
             animate="visible"
@@ -339,12 +317,37 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, toggleChat }) => {
           >
             <div className="chatbot-header">
               <div className="chatbot-title">
-                <div className="bot-avatar" aria-hidden="true">
-                  <Bot size={18} />
+                <div className="bot-avatar ai-enhanced" aria-hidden="true">
+                  <motion.div
+                    animate={{ 
+                      boxShadow: [
+                        '0 0 0 0 rgba(0, 255, 65, 0.4)',
+                        '0 0 0 10px rgba(0, 255, 65, 0)',
+                        '0 0 0 0 rgba(0, 255, 65, 0.4)'
+                      ]
+                    }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  >
+                    <Brain size={18} />
+                  </motion.div>
                 </div>
                 <div className="title-info">
                   <h3 id="chatbot-title">CyberGuard AI</h3>
-                  <span className="status">Online</span>
+                  <div className="ai-status">
+                    <span className="status">🧠 IA Avançada</span>
+                    <div className="ai-mode-selector">
+                      <select 
+                        value={aiMode} 
+                        onChange={(e) => setAiMode(e.target.value as any)}
+                        className="mode-select"
+                        aria-label="Modo da IA"
+                      >
+                        <option value="basic">Básico</option>
+                        <option value="advanced">Avançado</option>
+                        <option value="expert">Especialista</option>
+                      </select>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div className="chatbot-controls">
@@ -366,19 +369,19 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, toggleChat }) => {
             </div>
             
             <div 
-              className="chatbot-messages"
+              className="chatbot-messages enhanced"
               role="log"
               aria-live="polite"
-              aria-label="Histórico de mensagens do chat"
+              aria-label="Histórico de mensagens do chat com IA"
             >
               <div id="chatbot-description" className="sr-only">
-                Chat com assistente de cibersegurança. Use as setas para navegar pelas mensagens.
+                Chat com assistente de IA especializado em cibersegurança. Use as setas para navegar pelas mensagens.
               </div>
               
               {messages.map((message) => (
                 <motion.div 
                   key={message.id} 
-                  className={`message ${message.sender === 'user' ? 'user-message' : 'bot-message'}`}
+                  className={`message ${message.sender === 'user' ? 'user-message' : 'bot-message'} ${message.isAI ? 'ai-message' : ''}`}
                   variants={messageVariants}
                   initial="hidden"
                   animate="visible"
@@ -386,10 +389,56 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, toggleChat }) => {
                   aria-label={`${message.sender === 'user' ? 'Você' : 'CyberGuard AI'} às ${formatTime(message.timestamp)}`}
                 >
                   <div className="message-avatar" aria-hidden="true">
-                    {message.sender === 'user' ? <User size={16} /> : <Bot size={16} />}
+                    {message.sender === 'user' ? (
+                      <User size={16} />
+                    ) : (
+                      <div className={`bot-icon ${message.isAI ? 'ai-powered' : ''}`}>
+                        {message.isAI ? <Brain size={16} /> : <Bot size={16} />}
+                      </div>
+                    )}
                   </div>
                   <div className="message-content">
-                    <div className="message-text">{message.text}</div>
+                    <div className="message-text">
+                      {message.text}
+                      {message.isAI && message.confidence && (
+                        <div className="ai-metadata">
+                          <div className="confidence-indicator">
+                            <div 
+                              className="confidence-bar"
+                              style={{ 
+                                width: `${message.confidence}%`,
+                                backgroundColor: getConfidenceColor(message.confidence)
+                              }}
+                            />
+                            <span className="confidence-text">
+                              {getCategoryIcon(message.category)}
+                              {message.confidence}% confiança
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Suggestions */}
+                    {message.suggestions && message.suggestions.length > 0 && (
+                      <div className="message-suggestions">
+                        {message.suggestions.map((suggestion, index) => (
+                          <motion.button
+                            key={index}
+                            className="suggestion-chip"
+                            onClick={() => handleSuggestionClick(suggestion)}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.1 }}
+                          >
+                            {suggestion}
+                          </motion.button>
+                        ))}
+                      </div>
+                    )}
+                    
                     <div className="message-time">{formatTime(message.timestamp)}</div>
                   </div>
                 </motion.div>
@@ -397,17 +446,25 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, toggleChat }) => {
               
               {isTyping && (
                 <motion.div 
-                  className="message bot-message typing-message"
+                  className="message bot-message typing-message ai-thinking"
                   variants={messageVariants}
                   initial="hidden"
                   animate="visible"
-                  aria-label="CyberGuard AI está digitando"
+                  aria-label="CyberGuard AI está processando sua pergunta"
                 >
                   <div className="message-avatar" aria-hidden="true">
-                    <Bot size={16} />
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                    >
+                      <Brain size={16} />
+                    </motion.div>
                   </div>
                   <div className="message-content">
-                    <TypingAnimation />
+                    <div className="ai-thinking-indicator">
+                      <TypingAnimation />
+                      <span className="thinking-text">Analisando com IA...</span>
+                    </div>
                   </div>
                 </motion.div>
               )}
@@ -416,14 +473,14 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, toggleChat }) => {
             </div>
             
             <form 
-              className="chatbot-input"
+              className="chatbot-input enhanced"
               onSubmit={(e) => {
                 e.preventDefault();
                 handleSendMessage();
               }}
             >
               <label htmlFor="chat-input" className="sr-only">
-                Digite sua mensagem
+                Digite sua pergunta para a IA
               </label>
               <input
                 ref={inputRef}
@@ -432,21 +489,31 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, toggleChat }) => {
                 value={inputValue}
                 onChange={(e) => debouncedInputChange(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Pergunte sobre cibersegurança..."
+                placeholder="Pergunte qualquer coisa sobre cibersegurança..."
                 disabled={isTyping}
-                maxLength={500}
+                maxLength={1000}
                 aria-describedby="chat-input-help"
                 autoComplete="off"
               />
               <div id="chat-input-help" className="sr-only">
-                Pressione Enter para enviar, Shift+Enter para nova linha
+                Pressione Enter para enviar, Shift+Enter para nova linha. IA avançada ativada.
               </div>
               <button 
                 type="submit"
                 disabled={!inputValue.trim() || isTyping}
-                aria-label="Enviar mensagem"
+                aria-label="Enviar pergunta para IA"
+                className="send-button ai-enhanced"
               >
-                <Send size={18} aria-hidden="true" />
+                {isTyping ? (
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  >
+                    <Brain size={18} aria-hidden="true" />
+                  </motion.div>
+                ) : (
+                  <Send size={18} aria-hidden="true" />
+                )}
               </button>
             </form>
           </motion.div>
@@ -455,15 +522,27 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, toggleChat }) => {
 
       {minimized && isOpen && (
         <motion.button 
-          className="chatbot-minimized"
+          className="chatbot-minimized ai-enhanced"
           initial="hidden"
           animate="visible"
           variants={buttonVariants}
           onClick={() => setMinimized(false)}
-          aria-label={`Expandir chat. ${messageCount} mensagens`}
+          aria-label={`Expandir chat com IA. ${messageCount} mensagens`}
         >
-          <Bot size={20} aria-hidden="true" />
+          <motion.div
+            animate={{ 
+              boxShadow: [
+                '0 0 0 0 rgba(0, 255, 65, 0.4)',
+                '0 0 0 8px rgba(0, 255, 65, 0)',
+                '0 0 0 0 rgba(0, 255, 65, 0.4)'
+              ]
+            }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            <Brain size={20} aria-hidden="true" />
+          </motion.div>
           <span>CyberGuard AI</span>
+          <div className="ai-badge">🧠</div>
           {messageCount > 1 && (
             <div className="unread-indicator" aria-hidden="true">
               {messageCount - 1}
@@ -474,17 +553,29 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, toggleChat }) => {
 
       {!isOpen && (
         <motion.button 
-          className="chatbot-toggle"
+          className="chatbot-toggle ai-enhanced"
           onClick={toggleChat}
           initial="hidden"
           animate="visible"
           variants={buttonVariants}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
-          aria-label="Abrir chat com assistente de cibersegurança"
+          aria-label="Abrir chat com IA especializada em cibersegurança"
         >
-          <MessageSquare size={24} aria-hidden="true" />
-          <div className="chat-pulse" aria-hidden="true"></div>
+          <motion.div
+            animate={{ 
+              boxShadow: [
+                '0 0 0 0 rgba(0, 255, 65, 0.4)',
+                '0 0 0 12px rgba(0, 255, 65, 0)',
+                '0 0 0 0 rgba(0, 255, 65, 0.4)'
+              ]
+            }}
+            transition={{ duration: 3, repeat: Infinity }}
+          >
+            <Brain size={24} aria-hidden="true" />
+          </motion.div>
+          <div className="chat-pulse ai-pulse" aria-hidden="true"></div>
+          <div className="ai-indicator">🧠 IA</div>
         </motion.button>
       )}
     </>
