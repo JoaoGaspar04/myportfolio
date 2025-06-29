@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { ThemeProvider } from './context/ThemeContext';
 import ErrorBoundary from './components/ui/ErrorBoundary';
@@ -12,6 +12,9 @@ import PerformanceMonitor from './components/ui/PerformanceMonitor';
 import AccessibilityPanel from './components/ui/AccessibilityPanel';
 import LanguageSelector from './components/ui/LanguageSelector';
 import ResponsiveHelper from './components/ui/ResponsiveHelper';
+import NotificationSystem from './components/ui/NotificationSystem';
+import AdvancedSearch from './components/ui/AdvancedSearch';
+import QuickActions from './components/ui/QuickActions';
 import Home from './pages/Home';
 import About from './pages/About';
 import Skills from './pages/Skills';
@@ -24,6 +27,7 @@ import ParticleBackground from './components/animations/ParticleBackground';
 import { PerformanceUtils } from './utils/performance';
 import { AccessibilityUtils } from './utils/accessibility';
 import { SecurityUtils } from './utils/security';
+import { useNotifications } from './hooks/useNotifications';
 import './styles/App.css';
 import './styles/accessibility.css';
 import './styles/ErrorBoundary.css';
@@ -31,8 +35,19 @@ import './styles/ErrorBoundary.css';
 function App() {
   const [loading, setLoading] = useState(true);
   const [chatOpen, setChatOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [showPerformanceMonitor, setShowPerformanceMonitor] = useState(false);
   const [securityLevel, setSecurityLevel] = useState<'low' | 'medium' | 'high' | 'maximum'>('maximum');
+  
+  const navigate = useNavigate();
+  const { 
+    notifications, 
+    removeNotification, 
+    success, 
+    warning, 
+    info, 
+    security 
+  } = useNotifications();
 
   useEffect(() => {
     // Initialize universal accessibility and security features
@@ -63,6 +78,11 @@ function App() {
         if (PerformanceUtils.isSlowConnection()) {
           document.body.classList.add('slow-connection');
           console.log('🐌 Slow connection detected, optimizing experience');
+          warning(
+            'Conexão Lenta Detectada',
+            'Otimizando experiência para melhor performance',
+            { duration: 5000 }
+          );
         }
 
         // Simulate loading with performance monitoring
@@ -74,6 +94,13 @@ function App() {
           
           console.log(`⚡ App loaded in ${Math.round(loadTime)}ms`);
           setLoading(false);
+          
+          // Show welcome notification
+          success(
+            'Portfólio Carregado!',
+            'Bem-vindo ao meu portfólio de cibersegurança',
+            { duration: 4000 }
+          );
           
           // Monitor memory usage in development
           if (process.env.NODE_ENV === 'development') {
@@ -87,12 +114,23 @@ function App() {
       } catch (error) {
         console.error('❌ App initialization error:', error);
         setLoading(false);
+        security(
+          'Erro de Inicialização',
+          'Erro ao carregar a página. Tente recarregar.',
+          { 
+            persistent: true,
+            action: {
+              label: 'Recarregar',
+              onClick: () => window.location.reload()
+            }
+          }
+        );
         AccessibilityUtils.announce('Erro ao carregar a página. Tente recarregar.', 'assertive');
       }
     };
 
     initializeApp();
-  }, []);
+  }, [success, warning, security]);
 
   // Performance optimization: debounce chat toggle
   const debouncedToggleChat = PerformanceUtils.debounce(() => {
@@ -118,6 +156,11 @@ function App() {
 
         if (hasSuspicious) {
           console.warn('🚨 Suspicious activity detected in URL');
+          security(
+            'Atividade Suspeita Detectada',
+            'Possível tentativa de ataque bloqueada',
+            { persistent: true }
+          );
           AccessibilityUtils.announce('Atividade suspeita detectada. Página sendo protegida.', 'assertive');
         }
       };
@@ -128,17 +171,28 @@ function App() {
       const originalAlert = window.alert;
       window.alert = function(message) {
         console.warn('🚨 Alert intercepted (potential XSS):', message);
+        security(
+          'Tentativa de Script Malicioso',
+          'Script suspeito foi bloqueado automaticamente',
+          { persistent: true }
+        );
         AccessibilityUtils.announce('Tentativa de script malicioso bloqueada.', 'assertive');
         return originalAlert.call(window, message);
       };
     };
 
     monitorSecurity();
-  }, []);
+  }, [security]);
 
   // Keyboard shortcuts for development and accessibility
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Global search shortcut
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+
       // Development shortcuts
       if (process.env.NODE_ENV === 'development') {
         if (e.ctrlKey || e.metaKey) {
@@ -165,25 +219,38 @@ function App() {
           case 'a':
             e.preventDefault();
             AccessibilityUtils.enableEmergencyMode();
+            info(
+              'Modo de Emergência Ativado',
+              'Todas as melhorias de acessibilidade foram aplicadas',
+              { duration: 5000 }
+            );
             break;
           case 'h':
             e.preventDefault();
             // Toggle high contrast
             document.body.classList.toggle('high-contrast');
+            const contrastEnabled = document.body.classList.contains('high-contrast');
+            info(
+              contrastEnabled ? 'Alto Contraste Ativado' : 'Alto Contraste Desativado',
+              'Contraste visual ajustado',
+              { duration: 3000 }
+            );
             AccessibilityUtils.announce(
-              document.body.classList.contains('high-contrast') 
-                ? 'Alto contraste ativado' 
-                : 'Alto contraste desativado'
+              contrastEnabled ? 'Alto contraste ativado' : 'Alto contraste desativado'
             );
             break;
           case 'm':
             e.preventDefault();
             // Toggle reduced motion
             document.body.classList.toggle('reduced-motion');
+            const motionReduced = document.body.classList.contains('reduced-motion');
+            info(
+              motionReduced ? 'Animações Reduzidas' : 'Animações Normais',
+              'Preferências de movimento ajustadas',
+              { duration: 3000 }
+            );
             AccessibilityUtils.announce(
-              document.body.classList.contains('reduced-motion') 
-                ? 'Animações reduzidas' 
-                : 'Animações normais'
+              motionReduced ? 'Animações reduzidas' : 'Animações normais'
             );
             break;
         }
@@ -192,7 +259,7 @@ function App() {
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [info]);
 
   // CSP violation reporting
   useEffect(() => {
@@ -202,12 +269,17 @@ function App() {
         violatedDirective: e.violatedDirective,
         originalPolicy: e.originalPolicy
       });
+      security(
+        'Violação de Segurança Detectada',
+        'Tentativa de execução de código não autorizado foi bloqueada',
+        { persistent: true }
+      );
       AccessibilityUtils.announce('Violação de segurança detectada e bloqueada.', 'assertive');
     };
 
     document.addEventListener('securitypolicyviolation', handleCSPViolation);
     return () => document.removeEventListener('securitypolicyviolation', handleCSPViolation);
-  }, []);
+  }, [security]);
 
   // Handle modal state for body scroll
   useEffect(() => {
@@ -231,6 +303,11 @@ function App() {
 
     return () => observer.disconnect();
   }, []);
+
+  const handleSearchNavigate = (url: string) => {
+    navigate(url);
+    setSearchOpen(false);
+  };
 
   if (loading) {
     return (
@@ -318,8 +395,24 @@ function App() {
             <ChatBot isOpen={chatOpen} toggleChat={debouncedToggleChat} />
           </ErrorBoundary>
 
+          {/* Quick Actions */}
+          <QuickActions />
+
+          {/* Advanced Search */}
+          <AdvancedSearch 
+            isOpen={searchOpen}
+            onClose={() => setSearchOpen(false)}
+            onNavigate={handleSearchNavigate}
+          />
+
           {/* Accessibility Panel */}
           <AccessibilityPanel />
+          
+          {/* Notification System */}
+          <NotificationSystem 
+            notifications={notifications}
+            onDismiss={removeNotification}
+          />
           
           <CookieBanner />
           <Footer />
