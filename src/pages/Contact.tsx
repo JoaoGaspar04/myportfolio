@@ -1,22 +1,60 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Phone, MapPin, Send } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, Shield } from 'lucide-react';
 import emailjs from '@emailjs/browser';
+import { useSecureForm } from '../hooks/useSecureForm';
+import { AccessibilityUtils } from '../utils/accessibility';
 import '../styles/Contact.css';
 
+interface ContactFormData {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}
+
 const Contact = () => {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    subject: '',
-    message: ''
-  });
-  
-  const [formStatus, setFormStatus] = useState<{
-    submitted: boolean;
-    success: boolean;
+  const {
+    fields,
+    getFieldProps,
+    handleSubmit,
+    resetForm,
+    isSubmitting,
+    hasErrors,
+    isFormValid
+  } = useSecureForm<ContactFormData>(
+    {
+      name: '',
+      email: '',
+      subject: '',
+      message: ''
+    },
+    {
+      name: { 
+        required: true, 
+        minLength: 2, 
+        maxLength: 100,
+        pattern: /^[a-zA-ZÀ-ÿ\s]+$/
+      },
+      email: { 
+        required: true, 
+        email: true 
+      },
+      subject: { 
+        maxLength: 200 
+      },
+      message: { 
+        required: true, 
+        minLength: 10, 
+        maxLength: 2000 
+      }
+    }
+  );
+
+  const [submitStatus, setSubmitStatus] = React.useState<{
+    type: 'success' | 'error' | null;
     message: string;
-  } | null>(null);
+  }>({ type: null, message: '' });
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -37,67 +75,51 @@ const Contact = () => {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.name || !formData.email || !formData.message) {
-      setFormStatus({
-        submitted: true,
-        success: false,
-        message: 'Please fill in all required fields.'
-      });
-      return;
-    }
-    
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      setFormStatus({
-        submitted: true,
-        success: false,
-        message: 'Please enter a valid email address.'
-      });
-      return;
-    }
-
+  const onSubmit = async (values: ContactFormData) => {
     try {
       await emailjs.send(
         'service_ggmbbqd',
         'template_0sbtf5h',
         {
-          from_name: formData.name,
-          from_email: formData.email,
-          subject: formData.subject,
-          message: formData.message,
+          from_name: values.name,
+          from_email: values.email,
+          subject: values.subject || 'Contato via Portfolio',
+          message: values.message,
         },
         'Eme8qMU9zn3AtG-vG'
       );
 
-      setFormStatus({
-        submitted: true,
-        success: true,
-        message: 'Your message has been sent successfully!'
+      setSubmitStatus({
+        type: 'success',
+        message: 'Mensagem enviada com sucesso! Retornarei em breve.'
       });
 
-      setFormData({
-        name: '',
-        email: '',
-        subject: '',
-        message: ''
-      });
+      AccessibilityUtils.announce('Mensagem enviada com sucesso!');
+      resetForm();
 
       setTimeout(() => {
-        setFormStatus(null);
+        setSubmitStatus({ type: null, message: '' });
       }, 5000);
     } catch (error) {
-      setFormStatus({
-        submitted: true,
-        success: false,
-        message: 'Failed to send message. Please try again later.'
+      console.error('Erro ao enviar email:', error);
+      setSubmitStatus({
+        type: 'error',
+        message: 'Erro ao enviar mensagem. Tente novamente ou entre em contato diretamente.'
+      });
+
+      AccessibilityUtils.announce('Erro ao enviar mensagem', 'assertive');
+    }
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      await handleSubmit(onSubmit, `contact-${Date.now()}`);
+    } catch (error) {
+      setSubmitStatus({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'Erro desconhecido'
       });
     }
   };
@@ -109,7 +131,7 @@ const Contact = () => {
       initial="hidden"
       animate="visible"
     >
-      <motion.h1 variants={itemVariants}>Get In Touch</motion.h1>
+      <motion.h1 variants={itemVariants}>Entre em Contato</motion.h1>
       
       <motion.div 
         className="contact-wrapper"
@@ -119,58 +141,62 @@ const Contact = () => {
           className="contact-info"
           variants={itemVariants}
         >
-          <h2>Contact Information</h2>
+          <h2>Informações de Contato</h2>
           <p>
-            Feel free to say hello!
+            Vamos conversar sobre como posso ajudar a proteger sua infraestrutura digital!
           </p>
           
           <div className="contact-methods">
             <div className="contact-method">
-              <div className="method-icon">
+              <div className="method-icon" aria-hidden="true">
                 <Mail size={24} />
               </div>
               <div className="method-details">
                 <h3>Email</h3>
-                <p>support@joaocgaspar.pt</p>
+                <a href="mailto:support@joaocgaspar.pt" aria-label="Enviar email para support@joaocgaspar.pt">
+                  support@joaocgaspar.pt
+                </a>
               </div>
             </div>
             
             <div className="contact-method">
-              <div className="method-icon">
+              <div className="method-icon" aria-hidden="true">
                 <Phone size={24} />
               </div>
               <div className="method-details">
-                <h3>Phone</h3>
-                <p>+351 968196979</p>
+                <h3>Telefone</h3>
+                <a href="tel:+351968196979" aria-label="Ligar para +351 968196979">
+                  +351 968196979
+                </a>
               </div>
             </div>
             
             <div className="contact-method">
-              <div className="method-icon">
+              <div className="method-icon" aria-hidden="true">
                 <MapPin size={24} />
               </div>
               <div className="method-details">
-                <h3>Location</h3>
-                <p>Castelo Branco, CB</p>
+                <h3>Localização</h3>
+                <p>Castelo Branco, Portugal</p>
               </div>
             </div>
           </div>
           
           <div className="availability">
-            <h3>Availability</h3>
+            <h3>Disponibilidade</h3>
             <p>
-              Currently available help.
+              Atualmente disponível para novos projetos de cibersegurança e consultoria.
+              Resposta garantida em até 24 horas.
             </p>
           </div>
           
           <div className="security-note">
-            <div className="secure-icon">
-              <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-              </svg>
+            <div className="secure-icon" aria-hidden="true">
+              <Shield size={24} />
             </div>
             <p>
-              All communications are secured using end-to-end encryption for your privacy and security.
+              Todas as comunicações são protegidas e tratadas com máxima confidencialidade.
+              Seus dados estão seguros conosco.
             </p>
           </div>
         </motion.div>
@@ -179,79 +205,150 @@ const Contact = () => {
           className="contact-form-container"
           variants={itemVariants}
         >
-          <h2>Send a Message</h2>
+          <h2>Enviar Mensagem</h2>
           
-          <form className="contact-form" onSubmit={handleSubmit}>
+          <form 
+            className="contact-form" 
+            onSubmit={handleFormSubmit}
+            noValidate
+            aria-label="Formulário de contato"
+          >
             <div className="form-group">
-              <label htmlFor="name">Name <span className="required">*</span></label>
+              <label htmlFor="name">
+                Nome <span className="required" aria-label="obrigatório">*</span>
+              </label>
               <input
                 type="text"
                 id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="Your name"
+                {...getFieldProps('name')}
+                placeholder="Seu nome completo"
                 required
+                aria-required="true"
+                autoComplete="name"
               />
+              {fields.name.error && fields.name.touched && (
+                <div 
+                  id="name-error" 
+                  className="field-error"
+                  role="alert"
+                  aria-live="polite"
+                >
+                  {fields.name.error}
+                </div>
+              )}
             </div>
             
             <div className="form-group">
-              <label htmlFor="email">Email <span className="required">*</span></label>
+              <label htmlFor="email">
+                Email <span className="required" aria-label="obrigatório">*</span>
+              </label>
               <input
                 type="email"
                 id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="your.email@example.com"
+                {...getFieldProps('email')}
+                placeholder="seu.email@exemplo.com"
                 required
+                aria-required="true"
+                autoComplete="email"
               />
+              {fields.email.error && fields.email.touched && (
+                <div 
+                  id="email-error" 
+                  className="field-error"
+                  role="alert"
+                  aria-live="polite"
+                >
+                  {fields.email.error}
+                </div>
+              )}
             </div>
             
             <div className="form-group">
-              <label htmlFor="subject">Subject</label>
+              <label htmlFor="subject">Assunto</label>
               <input
                 type="text"
                 id="subject"
-                name="subject"
-                value={formData.subject}
-                onChange={handleChange}
-                placeholder="What's this about?"
+                {...getFieldProps('subject')}
+                placeholder="Sobre o que gostaria de falar?"
+                autoComplete="off"
               />
+              {fields.subject.error && fields.subject.touched && (
+                <div 
+                  id="subject-error" 
+                  className="field-error"
+                  role="alert"
+                  aria-live="polite"
+                >
+                  {fields.subject.error}
+                </div>
+              )}
             </div>
             
             <div className="form-group">
-              <label htmlFor="message">Message <span className="required">*</span></label>
+              <label htmlFor="message">
+                Mensagem <span className="required" aria-label="obrigatório">*</span>
+              </label>
               <textarea
                 id="message"
-                name="message"
-                value={formData.message}
-                onChange={handleChange}
-                placeholder="Your message here..."
+                {...getFieldProps('message')}
+                placeholder="Descreva seu projeto ou dúvida..."
                 rows={5}
                 required
-              ></textarea>
+                aria-required="true"
+              />
+              {fields.message.error && fields.message.touched && (
+                <div 
+                  id="message-error" 
+                  className="field-error"
+                  role="alert"
+                  aria-live="polite"
+                >
+                  {fields.message.error}
+                </div>
+              )}
+              <div className="char-count">
+                {fields.message.value.length}/2000 caracteres
+              </div>
             </div>
             
-            {formStatus && (
+            {submitStatus.type && (
               <motion.div 
-                className={`form-status ${formStatus.success ? 'success' : 'error'}`}
+                className={`form-status ${submitStatus.type}`}
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
+                role="alert"
+                aria-live="polite"
               >
-                {formStatus.message}
+                {submitStatus.message}
               </motion.div>
             )}
             
             <motion.button 
               type="submit"
               className="submit-btn"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              disabled={isSubmitting || hasErrors}
+              whileHover={{ scale: isSubmitting ? 1 : 1.05 }}
+              whileTap={{ scale: isSubmitting ? 1 : 0.95 }}
+              aria-describedby={hasErrors ? "form-errors" : undefined}
             >
-              <Send size={16} />
-              Send Message
+              {isSubmitting ? (
+                <>
+                  <div className="spinner" aria-hidden="true"></div>
+                  Enviando...
+                </>
+              ) : (
+                <>
+                  <Send size={16} aria-hidden="true" />
+                  Enviar Mensagem
+                </>
+              )}
             </motion.button>
+
+            {hasErrors && (
+              <div id="form-errors" className="form-errors" role="alert">
+                Por favor, corrija os erros acima antes de enviar.
+              </div>
+            )}
           </form>
         </motion.div>
       </motion.div>
