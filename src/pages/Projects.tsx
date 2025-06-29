@@ -275,88 +275,6 @@ const Projects = () => {
         'https://images.pexels.com/photos/323780/pexels-photo-323780.jpeg',
         'https://images.pexels.com/photos/325229/pexels-photo-325229.jpeg'
       ]
-    },
-    {
-      id: 7,
-      title: 'Website Corporativo SupportDreams',
-      description: 'Desenvolvido um website moderno para empresa de contabilidade usando HTML, CSS e JavaScript com gestão centralizada de informações.',
-      category: 'web application',
-      technologies: ['HTML5', 'CSS3', 'JavaScript', 'Firebase', 'QuintaDB'],
-      image: 'https://images.pexels.com/photos/1181671/pexels-photo-1181671.jpeg',
-      icon: <Globe size={24} />,
-      details: 'Este projeto consiste num website moderno construído para a SupportDreams.LDA para centralizar informações da empresa e gerir relacionamentos com clientes no setor contabilístico.',
-      features: [
-        'Design responsivo e moderno',
-        'Sistema de gestão de conteúdo',
-        'Portal do cliente integrado',
-        'Formulários dinâmicos',
-        'Dashboard administrativo',
-        'Sistema de notificações',
-        'Integração com redes sociais',
-        'SEO otimizado'
-      ],
-      challenges: [
-        'Integrar múltiplas bases de dados',
-        'Criar sistema de autenticação robusto',
-        'Otimizar performance e SEO',
-        'Desenvolver interface administrativa'
-      ],
-      results: [
-        'Aumento de 150% no tráfego web',
-        'Melhoria de 80% na satisfação do cliente',
-        'Redução de 50% no tempo de gestão',
-        'Score SEO de 95/100'
-      ],
-      duration: '10 semanas',
-      teamSize: '4 desenvolvedores',
-      role: 'Frontend Lead',
-      status: 'completed',
-      demoUrl: '#',
-      gallery: [
-        'https://images.pexels.com/photos/1181671/pexels-photo-1181671.jpeg',
-        'https://images.pexels.com/photos/574071/pexels-photo-574071.jpeg'
-      ]
-    },
-    {
-      id: 8,
-      title: 'Portfolio Web Django',
-      description: 'Desenvolvido um website pessoal usando Django e Python para mostrar competências, projetos e experiências profissionais.',
-      category: 'web application',
-      technologies: ['Django', 'Python', 'PostgreSQL', 'Bootstrap', 'Heroku'],
-      image: 'https://images.pexels.com/photos/574071/pexels-photo-574071.jpeg',
-      icon: <Users size={24} />,
-      details: 'Este projeto apresenta um portfólio web pessoal construído com Django, projetado para destacar competências-chave, projetos concluídos e background profissional.',
-      features: [
-        'CMS personalizado para projetos',
-        'Blog integrado com comentários',
-        'Sistema de contacto avançado',
-        'Galeria de projetos dinâmica',
-        'Dashboard de analytics',
-        'Otimização SEO avançada',
-        'Sistema de backup automático',
-        'Integração com APIs externas'
-      ],
-      challenges: [
-        'Implementar CMS personalizado',
-        'Otimizar performance do Django',
-        'Criar sistema de comentários seguro',
-        'Integrar analytics avançados'
-      ],
-      results: [
-        'Tempo de carregamento < 1.5s',
-        'Score de acessibilidade 100%',
-        'Sistema CMS 100% funcional',
-        'Integração perfeita com APIs'
-      ],
-      duration: '6 semanas',
-      teamSize: '1 desenvolvedor',
-      role: 'Full-Stack Developer',
-      status: 'completed',
-      githubUrl: '#',
-      gallery: [
-        'https://images.pexels.com/photos/574071/pexels-photo-574071.jpeg',
-        'https://images.pexels.com/photos/1181671/pexels-photo-1181671.jpeg'
-      ]
     }
   ];
 
@@ -454,6 +372,27 @@ const Projects = () => {
     }
   };
 
+  // Handle project click
+  const handleProjectClick = (project: Project) => {
+    console.log('Projeto clicado:', project.title); // Debug
+    setSelectedProject(project);
+    setCurrentImageIndex(0);
+  };
+
+  // Handle modal close
+  const handleCloseModal = () => {
+    console.log('Fechando modal'); // Debug
+    setSelectedProject(null);
+    setCurrentImageIndex(0);
+  };
+
+  // Handle overlay click
+  const handleOverlayClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      handleCloseModal();
+    }
+  };
+
   return (
     <motion.div
       className="projects-container"
@@ -518,10 +457,8 @@ const Projects = () => {
               y: -10,
               boxShadow: '0 20px 40px rgba(0, 255, 65, 0.15)'
             }}
-            onClick={() => {
-              setSelectedProject(project);
-              setCurrentImageIndex(0);
-            }}
+            onClick={() => handleProjectClick(project)}
+            style={{ cursor: 'pointer' }}
           >
             <div className="project-card-image" style={{ backgroundImage: `url(${project.image})` }}>
               <div className="project-category">
@@ -583,7 +520,7 @@ const Projects = () => {
               initial="hidden"
               animate="visible"
               exit="exit"
-              onClick={() => setSelectedProject(null)}
+              onClick={handleOverlayClick}
             />
             <motion.div
               className="project-modal enhanced"
@@ -616,7 +553,7 @@ const Projects = () => {
                 </div>
                 <button
                   className="modal-close"
-                  onClick={() => setSelectedProject(null)}
+                  onClick={handleCloseModal}
                   aria-label="Fechar modal"
                 >
                   <X size={24} />
