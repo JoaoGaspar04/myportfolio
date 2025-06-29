@@ -9,13 +9,23 @@ import {
   MessageSquare,
   ExternalLink,
   Copy,
-  Check
+  Check,
+  Settings,
+  Edit3,
+  Code,
+  Database,
+  Shield,
+  Network,
+  Smartphone,
+  Monitor
 } from 'lucide-react';
+import ContentManager from '../admin/ContentManager';
 
 const QuickActions: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [copiedPhone, setCopiedPhone] = useState(false);
+  const [showContentManager, setShowContentManager] = useState(false);
 
   const copyToClipboard = async (text: string, type: 'email' | 'phone') => {
     try {
@@ -33,6 +43,14 @@ const QuickActions: React.FC = () => {
   };
 
   const actions = [
+    {
+      id: 'content-manager',
+      label: 'Gestor de Conteúdo',
+      icon: Settings,
+      color: '#6366f1',
+      action: () => setShowContentManager(true),
+      subtitle: 'Atualizar portfólio'
+    },
     {
       id: 'download-cv',
       label: 'Download CV',
@@ -98,7 +116,7 @@ const QuickActions: React.FC = () => {
           width: '60px',
           height: '60px',
           borderRadius: '50%',
-          backgroundColor: '#6c5ce7',
+          background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
           color: 'white',
           border: 'none',
           cursor: 'pointer',
@@ -106,7 +124,7 @@ const QuickActions: React.FC = () => {
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 1000,
-          boxShadow: '0 8px 24px rgba(108, 92, 231, 0.4)'
+          boxShadow: '0 8px 24px rgba(99, 102, 241, 0.4)'
         }}
         aria-label="Ações rápidas"
       >
@@ -124,7 +142,7 @@ const QuickActions: React.FC = () => {
           <div style={{ position: 'fixed', bottom: '30px', left: '30px', zIndex: 999 }}>
             {actions.map((action, index) => {
               const Icon = action.icon;
-              const angle = (index * 60) - 90; // Distribute in arc
+              const angle = (index * 45) - 90; // Distribute in arc
               const radius = 100;
               const x = Math.cos((angle * Math.PI) / 180) * radius;
               const y = Math.sin((angle * Math.PI) / 180) * radius;
@@ -198,6 +216,12 @@ const QuickActions: React.FC = () => {
           />
         )}
       </AnimatePresence>
+
+      {/* Content Manager Modal */}
+      <ContentManager 
+        isOpen={showContentManager}
+        onClose={() => setShowContentManager(false)}
+      />
     </>
   );
 };
